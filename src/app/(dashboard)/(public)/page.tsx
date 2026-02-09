@@ -8,7 +8,7 @@ const Pge = () => {
     <div>
         <Hero1/>
 <FeaturedDesign/>
-<CategorySection/>
+<CategorySection role="student"/>
 <FAQSection/>
 <Footer/>
     </div>
