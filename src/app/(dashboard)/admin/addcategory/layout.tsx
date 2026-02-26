@@ -1,3 +1,4 @@
+
 import { Toaster } from "sonner";
 
 export default function DashboardLayout({
@@ -6,7 +7,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
+    // This empty tag is a Fragment. It groups the elements without adding a new div to the DOM.
     <>
+     
       {/* THE MISSING PIECE: This component actually draws the toast on screen */}
       <Toaster 
         theme="dark" 
@@ -19,7 +22,6 @@ export default function DashboardLayout({
           }
         }}
       />
-      
       <div className="container mx-auto px-4 py-8">
         {children}
       </div>

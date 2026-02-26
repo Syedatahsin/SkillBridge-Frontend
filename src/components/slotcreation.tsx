@@ -1,125 +1,150 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  Calendar as CalendarIcon, Clock, Video, 
-  Trash2, Sparkles, ChevronRight, ChevronLeft,
-  Check, Save, AlertCircle
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { toast } from "sonner";
+import { Loader2, Sparkles, Save, Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { getTutorSessionAction } from "@/Serveraction/slot";
 
-const SmartSlotCreator = () => {
-  // Get current date for "Min" constraints
+export default function SmartSlotCreator() {
+  const [tutorId, setTutorId] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(true);
   const today = new Date().toISOString().split("T")[0];
-  const currentTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 
-  return (
-    <div className="w-full min-h-screen bg-[#050505] text-white p-4 md:p-10 lg:p-16">
-      <div className="max-w-5xl mx-auto space-y-12">
+  useEffect(() => {
+    async function verifyTutor() {
+      try {
+        const res = await getTutorSessionAction();
+        if (res.success && res.tutorId) {
+          setTutorId(res.tutorId);
+        } else {
+          toast.error(res.error || "Tutor profile not found");
+        }
+      } catch (err) {
+        toast.error("Connection failed");
+      } finally {
+        setIsVerifying(false);
+      }
+    }
+    verifyTutor();
+  }, []);
+
+  const form = useForm({
+    defaultValues: { date: today, start: "09:00", end: "10:00" },
+    onSubmit: async ({ value }) => {
+      // 1. Create the promise for the fetch call
+      const createSlotPromise = async () => {
+        const response = await fetch(`http://localhost:5000/api/availability/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tutorId: tutorId,
+            startTime: `${value.date}T${value.start}:00.000Z`,
+            endTime: `${value.date}T${value.end}:00.000Z`,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to create slot");
+        }
         
-        {/* --- HEADER --- */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="space-y-2 text-center md:text-left">
-            <div className="flex items-center justify-center md:justify-start gap-2 text-purple-500 font-black text-[10px] uppercase tracking-[0.4em]">
-              <Sparkles size={14} className="fill-purple-500" /> Smart Scheduling
-            </div>
-            <h1 className="text-5xl md:text-6xl font-black tracking-tighter">
-              Create <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-fuchsia-500">Live Slots</span>
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-2xl">
-            <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Timezone: UTC +06:00</span>
-          </div>
-        </div>
+        return response.json();
+      };
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* LEFT: Date & Details (40%) */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 space-y-8">
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500 flex items-center gap-2">
-                   <CalendarIcon size={14} /> 1. Select Date
-                </label>
-                <input 
-                  type="date" 
-                  min={today}
-                  defaultValue={today}
-                  className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 focus:border-purple-500 transition-all font-bold text-white appearance-none cursor-pointer scheme-dark"
-                />
-                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest flex items-center gap-1">
-                  <AlertCircle size={10} /> Past dates are automatically disabled.
-                </p>
-              </div>
+      // 2. Trigger the Toast Promise
+      toast.promise(createSlotPromise(), {
+        loading: 'Syncing with database...',
+        success: () => {
+          form.reset(); // Clear form on success
+          return 'Slot created successfully!';
+        },
+        error: (err) => `${err.message}`,
+      });
+    },
+  });
 
-              <div className="space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500 flex items-center gap-2">
-                   <Video size={14} /> 2. Meeting Link
-                </label>
-                <input 
-                  placeholder="https://meet.google.com/..."
-                  className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl px-6 focus:border-purple-500 transition-all font-bold text-sm"
-                />
-              </div>
-            </div>
-          </div>
+  if (isVerifying) return (
+    <div className="h-screen flex flex-col items-center justify-center bg-black">
+      <Loader2 className="animate-spin text-purple-500 mb-4" size={40} />
+      <p className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Verifying Identity</p>
+    </div>
+  );
 
-          {/* RIGHT: Time Windows (60%) */}
-          <div className="lg:col-span-7">
-            <div className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 md:p-12 space-y-10 relative overflow-hidden">
-               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-600/5 blur-3xl pointer-events-none" />
-               
-               <div className="space-y-8">
-                  <label className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-500 flex items-center gap-2">
-                     <Clock size={14} /> 3. Set Time Duration
-                  </label>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest ml-1">From</span>
-                      <input 
-                        type="time" 
-                        className="w-full h-20 bg-white/5 border border-white/10 rounded-3xl px-8 focus:border-purple-500 transition-all font-black text-2xl scheme-dark cursor-pointer"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest ml-1">To</span>
-                      <input 
-                        type="time" 
-                        className="w-full h-20 bg-white/5 border border-white/10 rounded-3xl px-8 focus:border-purple-500 transition-all font-black text-2xl scheme-dark cursor-pointer"
-                      />
-                    </div>
-                  </div>
-               </div>
-
-               <div className="pt-8 flex gap-4">
-                  <button className="flex-1 h-20 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:scale-[1.02] active:scale-[0.98] rounded-3xl flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl shadow-purple-900/20">
-                    <Save size={20} /> Publish Slot
-                  </button>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* --- PREVIEW FOOTER --- */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 opacity-60 hover:opacity-100 transition-opacity">
-           <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[2rem] flex items-center justify-between group">
-              <div className="flex items-center gap-4">
-                <div className="size-12 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 font-black">12</div>
-                <div>
-                  <p className="font-bold text-sm">Today's Sessions</p>
-                  <p className="text-[10px] text-purple-500 font-black uppercase tracking-widest">3 Remaining</p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-gray-700 group-hover:text-purple-500 transition-colors" />
-           </div>
-        </div>
-
+  if (!tutorId) return (
+    <div className="h-screen flex items-center justify-center bg-black">
+      <div className="text-center space-y-4 p-10 border border-white/5 bg-zinc-950 rounded-[3rem]">
+        <AlertCircle className="mx-auto text-red-500" size={40} />
+        <h2 className="text-white font-black text-xl">Access Denied</h2>
+        <p className="text-zinc-500 text-sm">No Tutor Profile associated with this account.</p>
       </div>
     </div>
   );
-};
 
-export default SmartSlotCreator;
+  return (
+    <div className="min-h-screen bg-black text-white p-6 md:p-20">
+      <div className="max-w-4xl mx-auto space-y-12">
+        <header className="space-y-2">
+          <div className="flex items-center gap-2 text-purple-500 font-black text-[10px] uppercase tracking-[0.3em]">
+            <Sparkles size={14} /> Tutor Verified
+          </div>
+          <h1 className="text-6xl font-black italic tracking-tighter uppercase">
+            New <span className="text-purple-500">Availability</span>
+          </h1>
+        </header>
+
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void form.handleSubmit();
+          }} 
+          className="space-y-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-zinc-900/30 p-8 rounded-[3rem] border border-white/5">
+            <form.Field name="date">
+              {(field) => (
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-2">Date</label>
+                  <Input type="date" min={today} value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} className="h-16 bg-black/40 border-zinc-800 rounded-2xl font-bold" />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="start">
+              {(field) => (
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-2">Start Time</label>
+                  <Input type="time" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} className="h-16 bg-black/40 border-zinc-800 rounded-2xl font-bold" />
+                </div>
+              )}
+            </form.Field>
+
+            <form.Field name="end">
+              {(field) => (
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase text-zinc-500 ml-2">End Time</label>
+                  <Input type="time" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} className="h-16 bg-black/40 border-zinc-800 rounded-2xl font-bold" />
+                </div>
+              )}
+            </form.Field>
+          </div>
+
+          <form.Subscribe selector={(state) => [state.canSubmit, state.isSubmitting]}>
+            {([canSubmit, isSubmitting]) => (
+              <Button 
+                type="submit" 
+                disabled={!canSubmit || isSubmitting}
+                className="w-full h-24 bg-purple-600 hover:bg-purple-500 rounded-[2.5rem] text-2xl font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="animate-spin" size={32} /> : "Publish Slot"}
+              </Button>
+            )}
+          </form.Subscribe>
+        </form>
+      </div>
+    </div>
+  );
+}

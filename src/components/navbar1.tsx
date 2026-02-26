@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
-import { z } from "zod";
 import { 
-  Search, Star, ChevronDown, LayoutGrid, User, 
-  LogOut, Settings, BookOpen, Calendar, ShieldCheck 
+  Search, ChevronDown, LayoutGrid, User, 
+  Loader2, Star 
 } from "lucide-react";
 
-import { handleSearchAction } from "@/Serveraction/action"; // Import the server action
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,94 +18,128 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { de } from "zod/locales";
 
-// Define the Schema
-const searchSchema = z.object({
-  query: z.string().optional(),
-  subject: z.string().default("Subject"),
-  rating: z.number().min(0).max(5).default(0),
-  minPrice: z.number().optional(),
-  maxPrice: z.number().optional(),
-});
-
-type SearchFormValues = z.infer<typeof searchSchema>;
-
-const SkillBridgeNavbar = ({ role = "public" }: { role?: string }) => {
+export default function SkillBridgeNavbar({ role = "public" }: { role?: string }) {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // 1. Fetch Categories from your Backend
+  useEffect(() => {
+    setMounted(true);
+    const fetchSubjects = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/categories/get", {
+          headers: { "Accept": "application/json" }
+        });
+        
+        const contentType = response.headers.get("content-type");
+        if (response.ok && contentType && contentType.includes("application/json")) {
+          const result = await response.json();
+          const data = Array.isArray(result) ? result : result.data;
+          setCategories(data || []);
+        }
+      } catch (error) {
+        console.error("Category fetch failed:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchSubjects();
+  }, []);
+
+  // 2. TanStack Form with Redirect Logic
   const form = useForm({
     defaultValues: {
       query: "",
       subject: "Subject",
       rating: 0,
-      minPrice: undefined,
-      maxPrice: undefined,
-    } as SearchFormValues,
+      minPrice: undefined as number | undefined,
+      maxPrice: undefined as number | undefined,
+    },
     onSubmit: async ({ value }) => {
-      // Manual Zod Validation without adapter
-      const result = searchSchema.safeParse(value);
+      const params = new URLSearchParams();
       
-      if (!result.success) {
-        console.error("Validation failed:", result.error.format());
-        return;
-      }
+      // Matches your controller: search, categories, minPrice, maxPrice, minRating
+      if (value.query) params.append("search", value.query);
+      if (value.subject && value.subject !== "Subject") params.append("categories", value.subject);
+      if (value.minPrice) params.append("minPrice", value.minPrice.toString());
+      if (value.maxPrice) params.append("maxPrice", value.maxPrice.toString());
+      if (value.rating > 0) params.append("minRating", value.rating.toString());
 
-      // Call Server Action
-      await handleSearchAction(result.data);
-      alert("Search sent to server!");
+      router.push(`/find-tutors?${params.toString()}`);
     },
   });
 
-  if (!mounted) return <nav className="h-20 bg-black border-b border-white/10 w-full" />;
+  if (!mounted) return <nav className="h-24 bg-[#050505] border-b border-white/10 w-full" />;
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/95 backdrop-blur-md text-white">
-      <div className="container mx-auto px-4 h-20 flex items-center justify-between gap-4">
+    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#050505]/95 backdrop-blur-xl text-white font-sans">
+      <div className="container mx-auto px-6 h-24 flex items-center justify-between gap-6">
         
         {/* LOGO */}
-        <a href="/" className="flex items-center gap-2 shrink-0">
-          <div className="bg-gradient-to-br from-indigo-500 via-purple-500 p-2 rounded-xl">
+        <Link href="/" className="flex items-center gap-3 shrink-0 group">
+          <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2.5 rounded-2xl group-hover:rotate-6 transition-all duration-300 shadow-lg shadow-purple-500/20">
             <LayoutGrid className="size-6 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight">SkillBridge</span>
-        </a>
+          <div className="flex flex-col">
+            <span className="text-2xl font-black italic tracking-tighter uppercase leading-none">
+              SKILL<span className="text-purple-500">BRIDGE</span>
+            </span>
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500 mt-1">
+              Global Network
+            </span>
+          </div>
+        </Link>
 
-        {/* SEARCH BAR (TanStack Form) */}
+        {/* SEARCH BAR SECTION */}
         {(role === "public" || role === "student") && (
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              e.stopPropagation();
               form.handleSubmit();
             }}
-            className="hidden lg:flex flex-1 max-w-3xl items-center bg-white/5 border border-white/10 rounded-full p-1 pl-4 focus-within:ring-1 focus-within:ring-purple-500/50"
+            className="hidden xl:flex flex-1 max-w-5xl items-center bg-white/[0.03] border border-white/10 rounded-full p-1.5 pl-6 focus-within:border-purple-500/50 transition-all shadow-2xl"
           >
-            <Search className="size-4 text-gray-400 shrink-0" />
+            <Search className="size-4 text-purple-500 shrink-0" />
 
+            {/* SEARCH QUERY */}
             <form.Field name="query">
               {(field) => (
                 <input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Search..."
-                  className="bg-transparent border-none focus:ring-0 text-sm w-full px-3 placeholder:text-gray-500"
+                  placeholder="Find a mentor..."
+                  className="bg-transparent border-none focus:ring-0 text-sm w-full px-4 placeholder:text-gray-600 font-bold"
                 />
               )}
             </form.Field>
 
             <div className="h-6 w-px bg-white/10 mx-1" />
 
+            {/* SUBJECT DROPDOWN */}
             <form.Field name="subject">
               {(field) => (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-[11px] font-bold text-gray-400 px-2 outline-none uppercase whitespace-nowrap">
-                    {field.state.value} <ChevronDown className="size-3 text-purple-400" />
+                  <DropdownMenuTrigger className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-white px-4 outline-none uppercase tracking-widest transition-colors">
+                    <span className={field.state.value !== "Subject" ? "text-purple-400" : ""}>
+                      {field.state.value}
+                    </span>
+                    {isLoading ? <Loader2 className="animate-spin size-3" /> : <ChevronDown className="size-3 text-purple-500" />}
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-slate-950 border-white/10 text-white">
-                    {["Design", "Development", "Business"].map((s) => (
-                      <DropdownMenuItem key={s} onClick={() => field.handleChange(s)} className="cursor-pointer">{s}</DropdownMenuItem>
+                  <DropdownMenuContent className="bg-[#0A0A0B] border-white/10 text-white rounded-2xl p-2 min-w-[200px] shadow-2xl">
+                    <DropdownMenuItem onClick={() => field.handleChange("Subject")} className="cursor-pointer rounded-xl font-bold text-xs p-3 text-gray-500">
+                      All Subjects
+                    </DropdownMenuItem>
+                    {categories.map((cat) => (
+                      <DropdownMenuItem 
+                        key={cat.id} 
+                        onClick={() => field.handleChange(cat.name)}
+                        className="cursor-pointer rounded-xl font-bold text-xs p-3 hover:bg-purple-500/10 hover:text-purple-400"
+                      >
+                        {cat.name}
+                      </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -114,15 +148,23 @@ const SkillBridgeNavbar = ({ role = "public" }: { role?: string }) => {
 
             <div className="h-6 w-px bg-white/10 mx-1" />
 
+            {/* RATING DROPDOWN */}
             <form.Field name="rating">
               {(field) => (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-[11px] font-bold text-gray-400 px-2 outline-none uppercase whitespace-nowrap">
-                    {field.state.value > 0 ? `${field.state.value}+` : "Rating"} <Star className="size-3 fill-yellow-500 text-yellow-500 ml-1" />
+                  <DropdownMenuTrigger className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-white px-4 outline-none uppercase tracking-widest transition-colors">
+                    {field.state.value > 0 ? `${field.state.value}+ Stars` : "Rating"}
+                    <Star className={`size-3 ${field.state.value > 0 ? "fill-yellow-500 text-yellow-500" : "text-purple-500"}`} />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-slate-950 border-white/10 text-white">
+                  <DropdownMenuContent className="bg-[#0A0A0B] border-white/10 text-white rounded-2xl p-2 shadow-2xl">
                     {[4, 3, 2].map((r) => (
-                      <DropdownMenuItem key={r} onClick={() => field.handleChange(r)} className="cursor-pointer">{r}+ Stars</DropdownMenuItem>
+                      <DropdownMenuItem 
+                        key={r} 
+                        onClick={() => field.handleChange(r)}
+                        className="cursor-pointer rounded-xl font-bold text-xs p-3 hover:bg-yellow-500/10 hover:text-yellow-500"
+                      >
+                        {r}+ Stars
+                      </DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -131,8 +173,8 @@ const SkillBridgeNavbar = ({ role = "public" }: { role?: string }) => {
 
             <div className="h-6 w-px bg-white/10 mx-1" />
 
-            {/* Price Range */}
-            <div className="flex items-center gap-1 px-2">
+            {/* PRICE RANGE */}
+            <div className="flex items-center gap-2 px-4 shrink-0">
               <form.Field name="minPrice">
                 {(field) => (
                   <input
@@ -140,11 +182,11 @@ const SkillBridgeNavbar = ({ role = "public" }: { role?: string }) => {
                     placeholder="Min"
                     value={field.state.value ?? ""}
                     onChange={(e) => field.handleChange(e.target.value ? Number(e.target.value) : undefined)}
-                    className="bg-transparent border-none w-10 text-[11px] text-purple-400 font-bold placeholder:text-gray-600 focus:ring-0"
+                    className="bg-transparent border-none w-12 text-[11px] text-purple-400 font-black placeholder:text-gray-600 focus:ring-0"
                   />
                 )}
               </form.Field>
-              <span className="text-gray-600 text-[10px]">-</span>
+              <span className="text-gray-600 text-xs">-</span>
               <form.Field name="maxPrice">
                 {(field) => (
                   <input
@@ -152,76 +194,44 @@ const SkillBridgeNavbar = ({ role = "public" }: { role?: string }) => {
                     placeholder="Max"
                     value={field.state.value ?? ""}
                     onChange={(e) => field.handleChange(e.target.value ? Number(e.target.value) : undefined)}
-                    className="bg-transparent border-none w-10 text-[11px] text-purple-400 font-bold placeholder:text-gray-600 focus:ring-0"
+                    className="bg-transparent border-none w-12 text-[11px] text-purple-400 font-black placeholder:text-gray-600 focus:ring-0"
                   />
                 )}
               </form.Field>
             </div>
 
-            <form.Subscribe
-              selector={(state) => [state.canSubmit, state.isSubmitting]}
-              children={([canSubmit, isSubmitting]) => (
-                <Button type="submit" disabled={!canSubmit} size="sm" className="rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-6 font-bold transition-transform hover:scale-105">
-                  {isSubmitting ? "..." : "Find"}
-                </Button>
-              )}
-            />
+            <Button 
+              type="submit"
+              className="rounded-full bg-purple-600 hover:bg-purple-700 px-8 font-black uppercase text-[10px] tracking-widest h-11 transition-all active:scale-95 ml-2 shadow-lg shadow-purple-500/20"
+            >
+              Find
+            </Button>
           </form>
         )}
 
-        {/* TEACHER LINKS */}
-        {role === "teacher" && (
-          <div className="hidden md:flex items-center gap-8">
-            <a href="/availability" className="text-sm font-semibold flex items-center gap-2 text-gray-300 hover:text-purple-400 transition-colors">
-              <Calendar className="size-4 text-purple-500" /> Availability
-            </a>
-            <a href="/books" className="text-sm font-semibold flex items-center gap-2 text-gray-300 hover:text-purple-400 transition-colors">
-              <BookOpen className="size-4 text-purple-500" /> Manage Books
-            </a>
-          </div>
-        )}
-
-        {/* PROFILE SECTION */}
-        <div className="flex items-center gap-3">
+        {/* AUTH SECTION */}
+        <div className="flex items-center gap-6 shrink-0">
           {role === "public" ? (
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" className="rounded-full text-gray-400">Login</Button>
-              <Button className="rounded-full bg-white text-black font-bold px-6">Join Free</Button>
+            <div className="flex items-center gap-6">
+              <Link 
+                href="/login" 
+                className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors"
+              >
+                Login
+              </Link>
+              <Link href="/registration">
+                <Button className="rounded-2xl bg-white text-black font-black uppercase text-[10px] tracking-widest px-8 h-12 hover:bg-purple-600 hover:text-white transition-all shadow-xl active:scale-95 border-none">
+                  Join Now
+                </Button>
+              </Link>
             </div>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-10 w-10 rounded-full border border-white/10 bg-white/5 hover:ring-2 hover:ring-purple-500/30 transition-all">
-                  <User className="size-5 text-purple-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-64 bg-slate-950 border-white/10 text-white shadow-2xl">
-                <DropdownMenuLabel className="p-4">
-                  <p className="text-sm font-bold leading-none">Syeda Anika</p>
-                  <p className="text-[10px] text-purple-400 uppercase font-black mt-1">{role} Portal</p>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-white/10" />
-                {role === "admin" && (
-                  <DropdownMenuItem className="p-3 cursor-pointer hover:bg-white/5">
-                    <ShieldCheck className="mr-3 size-4 text-indigo-400" /> Admin Panel
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem className="p-3 cursor-pointer hover:bg-white/5">
-                  <User className="mr-3 size-4 text-gray-400" /> Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem className="p-3 cursor-pointer hover:bg-white/5">
-                  <Settings className="mr-3 size-4 text-gray-400" /> Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-white/10" />
-                <DropdownMenuItem className="p-3 cursor-pointer text-red-400 hover:bg-red-400/10">
-                  <LogOut className="mr-3 size-4" /> Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="h-12 w-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center cursor-pointer hover:border-purple-500/50 transition-all">
+               <User className="size-5 text-purple-500" />
+            </div>
           )}
         </div>
       </div>
     </nav>
   );
-};
-export default SkillBridgeNavbar;
+}

@@ -14,20 +14,20 @@ const FAQ_DATA = [
     answer: "You can use our advanced search bar to filter tutors by subject, rating, and price range. Each tutor has a detailed profile with reviews from other students to help you decide."
   },
   {
-    question: "How does the payment system work?",
-    answer: "SkillBridge uses a secure escrow system. You pay for the session when booking, but the funds are only released to the teacher after the session is successfully completed."
+    question: " How do I book a one-to-one  session??",
+    answer: "Students can create an account, choose their preferred teacher, and enroll for one-to-one session based on their availability. "
   },
   {
     question: "Can I cancel a booked session?",
-    answer: "Yes, you can cancel up to 24 hours before the session starts for a full refund. Cancellations within 24 hours may be subject to a partial fee depending on the teacher's policy."
+    answer: "Yes, just click on the cancel button in your session details."
   },
   {
-    question: "Is there a free trial for new students?",
-    answer: "Many of our teachers offer a free 15-minute introductory meeting to discuss your learning goals before you commit to a full paid session."
+    question: "How are the one-to-one sessions conducted",
+    answer: "Sessions are conducted individually between the student and the teacher, ensuring personalized attention and focused learning support."
   },
   {
     question: "How do I apply to become a teacher?",
-    answer: "Simply click the 'Join Now' button and select the 'Teacher' role during signup. You will need to complete your profile and undergo a brief verification process."
+    answer: "Simply click the “Join Now” button and choose the “Teacher” role during sign-up. Then, complete your profile by adding your subject and other relevant details to get started. ✨"
   }
 ];
 

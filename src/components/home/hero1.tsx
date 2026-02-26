@@ -22,7 +22,7 @@ const Hero1 = ({
   heading = "Master Any Subject with Expert Guidance",
   description = "Connect with top-tier tutors, browse verified ratings, and book personalized 1-on-1 sessions. Your journey to mastery starts with the right teacher.",
   buttons = {
-    primary: { text: "Find Your Tutor", url: "#" },
+    primary: { text: "Find Your Tutor", url: "/teacherlist" },
     secondary: { text: "Book a Schedule", url: "#" },
   },
   image = {
@@ -77,17 +77,7 @@ const Hero1 = ({
                   </a>
                 </Button>
               )}
-              {buttons.secondary && (
-                <Button 
-                  asChild 
-                  variant="outline" 
-                  className="h-14 w-full rounded-full border-white/10 bg-white/5 px-8 text-lg font-medium text-white backdrop-blur-md hover:bg-white/10 sm:w-auto"
-                >
-                  <a href={buttons.secondary.url}>
-                    {buttons.secondary.text}
-                  </a>
-                </Button>
-              )}
+              
             </div>
           </div>
 
@@ -111,7 +101,7 @@ const Hero1 = ({
                   </div>
                   <div>
                     <p className="text-[10px] uppercase tracking-wider text-gray-400">Subjects</p>
-                    <p className="text-sm font-bold text-white">100+ Categories</p>
+                    <p className="text-sm font-bold text-white">Explore Vast Categories</p>
                   </div>
                 </div>
                 

@@ -3,38 +3,15 @@
 import React, { useState } from "react";
 import { 
   Star, Clock, ShieldCheck, User, Sparkles, 
-  HandCoins, Calendar, CheckCircle2, Quote,
-  ArrowRight, X, MessageSquare, Zap, Target
+  HandCoins, X, Zap, Target
 } from "lucide-react";
 
-export default function TeacherProfilePage() {
+export default function TeacherProfileClient({ tutor }: { tutor: any }) {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
-  // DUMMY DATA: Slots
-  const slots = [
-    { id: "s1", startTime: "2026-02-12T10:00:00", isBooked: false },
-    { id: "s2", startTime: "2026-02-12T14:00:00", isBooked: true },
-    { id: "s3", startTime: "2026-02-13T09:00:00", isBooked: false },
-    { id: "s4", startTime: "2026-02-14T11:00:00", isBooked: false },
-  ];
-
-  // DUMMY DATA: Reviews (Prisma Model style)
-  const reviews = [
-    {
-      id: "rev-1",
-      rating: 5,
-      comment: "The session was legendary. Ariful has a way of making complex system design feel like playing with Legos.",
-      student: { name: "Tanvir Hossain" },
-      createdAt: "2026-02-10",
-    },
-    {
-      id: "rev-2",
-      rating: 5,
-      comment: null, // Quick rating
-      student: { name: "Anika J." },
-      createdAt: "2026-02-08",
-    },
-  ];
+  // Use real data from Prisma relations
+  const slots = tutor.availability || [];
+  const reviews = tutor.reviews || [];
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30 overflow-x-hidden">
@@ -48,8 +25,8 @@ export default function TeacherProfilePage() {
             <div className="size-40 lg:size-64 rounded-[3rem] bg-gradient-to-tr from-purple-600 to-fuchsia-600 p-[4px] shadow-2xl shadow-purple-500/20">
               <div className="size-full bg-[#050505] rounded-[2.8rem] overflow-hidden">
                 <img 
-                  src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400&auto=format&fit=crop" 
-                  alt="Dr. Ariful" 
+                  src={tutor.user?.image || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=400&auto=format&fit=crop"} 
+                  alt={tutor.user?.name} 
                   className="size-full object-cover"
                 />
               </div>
@@ -63,13 +40,13 @@ export default function TeacherProfilePage() {
           <div className="text-center lg:text-left space-y-6">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 text-purple-500 font-black text-[10px] uppercase tracking-[0.5em]">
-                <Zap size={14} className="fill-purple-500" /> Top Rated Mentor
+                <Zap size={14} className="fill-purple-500" /> Professional Mentor
               </div>
               <h1 className="text-5xl lg:text-8xl font-black italic tracking-tighter leading-none">
-                Dr. Ariful <span className="text-purple-600">Islam</span>
+                {tutor.user?.name?.split(' ')[0]} <span className="text-purple-600">{tutor.user?.name?.split(' ').slice(1).join(' ')}</span>
               </h1>
               <p className="text-gray-400 text-lg lg:text-xl font-medium italic max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                "Specializing in High-Performance Web Architecture & React. Bridging the gap between Junior and Senior engineers."
+                "{tutor.bio || 'Bridging the gap between knowledge and expertise.'}"
               </p>
             </div>
 
@@ -80,7 +57,7 @@ export default function TeacherProfilePage() {
                </div>
                <div className="px-6 py-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 flex items-center gap-3 text-emerald-400">
                   <HandCoins size={18} />
-                  <span className="font-black italic text-xs uppercase tracking-widest">Cash on Delivery</span>
+                  <span className="font-black italic text-xs uppercase tracking-widest">Pay at Session</span>
                </div>
             </div>
           </div>
@@ -100,7 +77,7 @@ export default function TeacherProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {slots.map((slot) => {
+          {slots.length > 0 ? slots.map((slot: any) => {
             const isSelected = selectedSlot === slot.id;
             return (
               <button
@@ -139,30 +116,34 @@ export default function TeacherProfilePage() {
                 </div>
               </button>
             );
-          })}
+          }) : (
+            <div className="col-span-full py-10 text-center text-gray-500 italic border border-dashed border-white/10 rounded-3xl">
+              No sessions available for booking right now.
+            </div>
+          )}
         </div>
       </section>
 
-      {/* 3. REVIEWS SECTION (Bento Style) */}
+      {/* 3. REVIEWS SECTION */}
       <section className="bg-[#080809] py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-16 space-y-4">
             <h2 className="text-4xl lg:text-7xl font-black italic tracking-tighter uppercase">Student <span className="text-purple-600">Feed.</span></h2>
             <div className="flex items-center justify-center gap-2">
               {[...Array(5)].map((_, i) => <Star key={i} size={14} className="fill-purple-500 text-purple-500" />)}
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Trusted by 120+ Students</span>
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-2">Verified Reviews</span>
             </div>
           </div>
 
           <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            {reviews.map((rev) => (
+            {reviews.length > 0 ? reviews.map((rev: any) => (
               <div key={rev.id} className="break-inside-avoid p-8 bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] hover:border-purple-500/30 transition-all">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-500">
                     <User size={18} />
                   </div>
                   <div>
-                    <h4 className="text-sm font-black italic tracking-tight">{rev.student.name}</h4>
+                    <h4 className="text-sm font-black italic tracking-tight">{rev.student?.name || "Verified Student"}</h4>
                     <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-tighter">Verified Review</p>
                   </div>
                 </div>
@@ -174,7 +155,9 @@ export default function TeacherProfilePage() {
                   </div>
                 )}
               </div>
-            ))}
+            )) : (
+                <p className="col-span-full text-center text-gray-600">No reviews yet.</p>
+            )}
           </div>
         </div>
       </section>
@@ -188,9 +171,9 @@ export default function TeacherProfilePage() {
                 <HandCoins size={24} />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Confirm (Pay at Session)</p>
+                <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Confirm Booking</p>
                 <p className="text-lg font-black truncate leading-none">
-                  {new Date(slots.find(s => s.id === selectedSlot)?.startTime || "").toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {new Date(slots.find((s: any) => s.id === selectedSlot)?.startTime || "").toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
             </div>
