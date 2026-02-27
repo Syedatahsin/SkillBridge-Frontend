@@ -44,7 +44,7 @@ export default function AddCategoryForm() {
 
         toast.success("Category created successfully!", { id: toastId });
         form.reset();
-        router.push("/admin/categories");
+        router.push("/admin/");
 
       } catch (err: any) {
         setHasError(true);

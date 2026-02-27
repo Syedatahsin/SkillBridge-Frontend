@@ -93,14 +93,16 @@ export default function CategorySection({ role = "public" }: CategorySectionProp
               Choose a subject to find your favorite mentor and start your learning journey.
             </p>
           </div>
-          
-          
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           
+          {/* ADMIN ACTION CARD - REDIRECTS TO http://localhost:3000/admin/addcategory */}
           {role === "admin" && (
-            <Card className="group relative border-2 border-dashed border-zinc-800 bg-zinc-900/20 hover:border-purple-500/50 transition-all cursor-pointer rounded-[2.5rem] flex items-center justify-center min-h-[280px]">
+            <Card 
+              onClick={() => router.push("/admin/addcategory")}
+              className="group relative border-2 border-dashed border-zinc-800 bg-zinc-900/20 hover:border-purple-500/50 transition-all cursor-pointer rounded-[2.5rem] flex items-center justify-center min-h-[280px]"
+            >
               <CardContent className="p-0 flex flex-col items-center gap-4">
                 <div className="p-5 rounded-full bg-zinc-800 text-zinc-500 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-xl">
                   <Plus size={32} />
@@ -110,47 +112,49 @@ export default function CategorySection({ role = "public" }: CategorySectionProp
             </Card>
           )}
 
-          {categories.length > 0 ? (
-            categories.map((cat, i) => {
-              const IconComponent = NEUTRAL_ICONS[i % NEUTRAL_ICONS.length];
-              const teacherCount = cat._count?.tutors ?? 0;
+          {/* REAL CATEGORIES FROM DATABASE */}
+          {categories.map((cat, i) => {
+            const IconComponent = NEUTRAL_ICONS[i % NEUTRAL_ICONS.length];
+            const teacherCount = cat._count?.tutors ?? 0;
 
-              return (
-                <Card 
-                  key={cat.id || i} 
-                  onClick={() => handleCategoryClick(cat.name)}
-                  className="group relative bg-[#0A0A0A] border border-white/10 hover:border-purple-500/40 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2.5rem] shadow-2xl"
-                >
+            return (
+              <Card 
+                key={cat.id || i} 
+                onClick={() => handleCategoryClick(cat.name)}
+                className="group relative bg-[#0A0A0A] border border-white/10 hover:border-purple-500/40 transition-all duration-500 cursor-pointer overflow-hidden rounded-[2.5rem] shadow-2xl"
+              >
+                <div className={cn(
+                  "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-700",
+                  GLOWS[i % GLOWS.length],
+                  "to-transparent"
+                )} />
+
+                <CardContent className="p-10 relative z-10 flex flex-col items-center gap-8">
                   <div className={cn(
-                    "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-700",
-                    GLOWS[i % GLOWS.length],
-                    "to-transparent"
-                  )} />
+                    "p-6 rounded-[1.5rem] bg-white/5 border border-white/10 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:bg-black/60 group-hover:shadow-purple-500/20 group-hover:shadow-2xl",
+                    COLORS[i % COLORS.length]
+                  )}>
+                    <IconComponent size={32} strokeWidth={1.5} />
+                  </div>
 
-                  <CardContent className="p-10 relative z-10 flex flex-col items-center gap-8">
-                    <div className={cn(
-                      "p-6 rounded-[1.5rem] bg-white/5 border border-white/10 shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:bg-black/60 group-hover:shadow-purple-500/20 group-hover:shadow-2xl",
-                      COLORS[i % COLORS.length]
-                    )}>
-                      <IconComponent size={32} strokeWidth={1.5} />
+                  <div className="text-center space-y-2">
+                    <h3 className="font-bold text-xl text-zinc-100 group-hover:text-white transition-colors">
+                      {cat.name}
+                    </h3>
+                    
+                    <div className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/5 transition-colors group-hover:border-white/10 group-hover:bg-white/10">
+                      <p className="text-[10px] text-zinc-500 group-hover:text-zinc-300 font-black uppercase tracking-widest">
+                        {teacherCount} {teacherCount === 1 ? 'Teacher' : 'Teachers'} Available
+                      </p>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
 
-                    <div className="text-center space-y-2">
-                      <h3 className="font-bold text-xl text-zinc-100 group-hover:text-white transition-colors">
-                        {cat.name}
-                      </h3>
-                      
-                      <div className="inline-block px-4 py-1.5 rounded-full bg-white/5 border border-white/5 transition-colors group-hover:border-white/10 group-hover:bg-white/10">
-                        <p className="text-[10px] text-zinc-500 group-hover:text-zinc-300 font-black uppercase tracking-widest">
-                          {teacherCount} {teacherCount === 1 ? 'Teacher' : 'Teachers'} Available
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-          ) : (
+          {/* EMPTY STATE */}
+          {!loading && categories.length === 0 && role !== "admin" && (
             <div className="col-span-full py-20 text-center border border-dashed border-white/5 rounded-[2rem]">
               <p className="text-zinc-600 font-medium">No categories found in the database.</p>
             </div>

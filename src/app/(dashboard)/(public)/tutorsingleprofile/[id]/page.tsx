@@ -16,7 +16,7 @@ export default async function Page({ params }: PageProps) {
 
   // 2. Fetch the session
   const { data: session } = await userService.getSession();
-  log("Session in Page Component:", session.user.id); // Debug log to verify session retrieval
+const studentId = session|| null;
   try {
     // 3. Use the sanitized ID in the fetch
     // Added a cache-busting timestamp just in case of ghost 404s
@@ -42,7 +42,7 @@ export default async function Page({ params }: PageProps) {
        return notFound();
     }
 
-    return <TutorClient tutorData={tutorData} initialSession={session.user.id }/>;
+    return <TutorClient tutorData={tutorData} initialSession={studentId }/>;
 
   } catch (error) {
     console.error("Fetch Connection Refused:", error);

@@ -10,6 +10,7 @@ export default async function Page() {
   
   // 2. Determine if the tutor exists
   const hasTutorProfile = res.success && res.tutorId;
+console.log("Tutor Session Data:", res); // Debug log to check the response structure
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-5">
@@ -27,8 +28,9 @@ export default async function Page() {
                 Teacher Console
               </h1>
             </header>
-            <SessionManagement role="teacher" />
-            <ReviewSection />
+            <SessionManagement role="teacher" userId={res.tutorId} />
+            
+            <ReviewSection userId={res.tutorId} />
           </div>
         )}
         
