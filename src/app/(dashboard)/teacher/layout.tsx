@@ -9,7 +9,7 @@ export default function DashboardLayout({
   return (
     // This empty tag is a Fragment. It groups the elements without adding a new div to the DOM.
     <>
-      <SkillBridgeNavbar role="teacher  " />
+      <SkillBridgeNavbar role="teacher" />
       <div className="container mx-auto px-4 py-8">
         {children}
       </div>

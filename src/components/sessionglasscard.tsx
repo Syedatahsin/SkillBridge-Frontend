@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
-  XCircle, CheckCircle2, Loader2 
+  XCircle, CheckCircle2, Loader2, User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
@@ -20,15 +20,16 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. FETCH LOGIC
-  // Matches route: GET /api/bookings/tutorbookings?userId=...
+  // 1. DYNAMIC FETCH LOGIC
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `http://localhost:5000/api/bookings/tutorbookings?userId=${userId}`
-      );
-      
+      // Switches endpoint based on role
+      const endpoint = role === "student" 
+        ? `http://localhost:5000/api/bookings/studentbookings?userId=${userId}`
+        : `http://localhost:5000/api/bookings/tutorbookings?userId=${userId}`;
+
+      const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to load sessions");
       
       const data = await response.json();
@@ -38,18 +39,15 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, role]);
 
   useEffect(() => {
     if (userId) fetchSessions();
   }, [fetchSessions, userId]);
 
-  // 2. TANSTACK FORM (Mutation Logic)
-  // Matches route: PATCH /api/bookings/tutorbookings/complete/:id
+  // 2. TEACHER MUTATION (Complete Session)
   const completeForm = useForm({
-    defaultValues: {
-      bookingId: "",
-    },
+    defaultValues: { bookingId: "" },
     onSubmit: async ({ value }) => {
       const toastId = toast.loading("Finalizing session...");
       try {
@@ -57,16 +55,33 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
           method: "PATCH",
           headers: { "Content-Type": "application/json" }
         });
-
         if (!res.ok) throw new Error("Update failed");
-
         toast.success("Session completed!", { id: toastId });
-        fetchSessions(); // Refresh UI
+        fetchSessions();
       } catch (err) {
         toast.error("Error updating status", { id: toastId });
       }
     },
   });
+
+  // 3. STUDENT MUTATION (Cancel Session)
+  const handleCancel = async (bookingId: string) => {
+    const confirmCancel = window.confirm("Are you sure you want to cancel this booking?");
+    if (!confirmCancel) return;
+
+    const toastId = toast.loading("Cancelling booking...");
+    try {
+      const res = await fetch(`http://localhost:5000/api/bookings/studentbookings/cancel/${bookingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" }
+      });
+      if (!res.ok) throw new Error("Cancellation failed");
+      toast.success("Booking cancelled", { id: toastId });
+      fetchSessions();
+    } catch (err) {
+      toast.error("Failed to cancel", { id: toastId });
+    }
+  };
 
   const statuses = ["upcoming", "completed", "cancelled"];
 
@@ -74,7 +89,9 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     return (
       <div className="flex flex-col items-center justify-center py-32 bg-[#050505]">
         <Loader2 className="animate-spin text-purple-600 size-12 mb-4" />
-        <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">Loading Tutor Dashboard...</p>
+        <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">
+          Loading {role === "teacher" ? "Tutor" : "Student"} Dashboard...
+        </p>
       </div>
     );
   }
@@ -86,10 +103,10 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
             <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">
-              Session <span className="text-purple-600">Control</span>
+              {role === "teacher" ? "Session" : "My"} <span className="text-purple-600">Control</span>
             </h2>
             <p className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mt-2">
-              Managing bookings for User ID: {userId.slice(0, 8)}...
+              Viewing as {role}: {userId.slice(0, 8)}...
             </p>
           </div>
           
@@ -135,12 +152,19 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     </span>
                   </div>
 
-                  {/* Student Info - Matching your Schema relation */}
-                  <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-1">
-                    {session.student?.name || "Private Session"}
-                  </h3>
+                  {/* Dynamic Info (Shows Tutor Name for Student, Student Name for Teacher) */}
+                  <div className="flex items-center gap-2 mb-1">
+                    <User size={14} className="text-zinc-600" />
+                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">
+                      {role === "teacher" 
+                        ? (session.student?.name || "Private Session")
+                        : (session.tutor?.user?.name || "Instructor")
+                      }
+                    </h3>
+                  </div>
+                  
                   <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-6">
-                    Student ID: {session.studentId.slice(-6)}
+                    {role === "teacher" ? "Student ID: " : "Booking Ref: "} {session.id.slice(-6).toUpperCase()}
                   </p>
 
                   {/* Time Info */}
@@ -155,7 +179,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     </div>
                   </div>
 
-                  {/* BUTTONS */}
+                  {/* DYNAMIC BUTTONS BASED ON ROLE */}
                   <div className="flex gap-2">
                     {session.status === "CONFIRMED" && (
                       <>
@@ -166,26 +190,41 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                           <Video size={16} className="mr-2" /> Join
                         </Button>
                         
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            completeForm.setFieldValue("bookingId", session.id);
-                            completeForm.handleSubmit();
-                          }}
-                        >
-                          <Button 
-                            type="submit"
-                            variant="outline" 
-                            className="px-4 rounded-xl border-white/10 bg-white/5 text-emerald-500 hover:bg-emerald-500/10 font-black uppercase text-[10px] h-12"
+                        {role === "teacher" ? (
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              completeForm.setFieldValue("bookingId", session.id);
+                              completeForm.handleSubmit();
+                            }}
                           >
-                            Done
+                            <Button 
+                              type="submit"
+                              variant="outline" 
+                              className="px-4 rounded-xl border-white/10 bg-white/5 text-emerald-500 hover:bg-emerald-500/10 font-black uppercase text-[10px] h-12"
+                            >
+                              Done
+                            </Button>
+                          </form>
+                        ) : (
+                          <Button 
+                            onClick={() => handleCancel(session.id)}
+                            variant="outline" 
+                            className="px-4 rounded-xl border-white/10 bg-white/5 text-rose-500 hover:bg-rose-500/10 font-black uppercase text-[10px] h-12"
+                          >
+                            Cancel
                           </Button>
-                        </form>
+                        )}
                       </>
                     )}
                     {session.status === "COMPLETED" && (
                       <Button disabled className="w-full rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black uppercase text-[10px] h-12">
                         Session Archived
+                      </Button>
+                    )}
+                    {session.status === "CANCELLED" && (
+                      <Button disabled className="w-full rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 font-black uppercase text-[10px] h-12">
+                        Booking Cancelled
                       </Button>
                     )}
                   </div>
