@@ -1,9 +1,10 @@
-import UniversalUserTable from "@/components/teacherlist";
+import AllStudentsPage from "@/components/studentfulllist";
+
 const Page = () => {
   return (
     <div className="min-h-screen bg-white">
+<AllStudentsPage />
 
-<UniversalUserTable role="student" />
   </div>
   )
 };

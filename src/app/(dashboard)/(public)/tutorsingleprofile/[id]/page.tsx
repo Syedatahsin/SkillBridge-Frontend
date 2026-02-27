@@ -31,12 +31,14 @@ const studentId = session|| null;
       }
     );
 
+
     if (!tutorRes.ok) {
       console.error(`[BACKEND 404] Attempted ID: "${id}"`); // Quotes show spaces!
       return notFound();
     }
 
     const tutorData = await tutorRes.json();
+    console.log("response",tutorData);
 
     if (!tutorData || tutorData.message) {
        return notFound();
