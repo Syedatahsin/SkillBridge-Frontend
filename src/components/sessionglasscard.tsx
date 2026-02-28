@@ -4,12 +4,13 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
-  XCircle, CheckCircle2, Loader2, User
+  XCircle, CheckCircle2, Loader2, User, Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 interface SessionProps {
   role: "teacher" | "student";
@@ -17,6 +18,7 @@ interface SessionProps {
 }
 
 const SessionManagement = ({ role, userId }: SessionProps) => {
+  const router = useRouter();
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,7 +26,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
-      // Switches endpoint based on role
       const endpoint = role === "student" 
         ? `http://localhost:5000/api/bookings/studentbookings?userId=${userId}`
         : `http://localhost:5000/api/bookings/tutorbookings?userId=${userId}`;
@@ -136,7 +137,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                   key={session.id} 
                   className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group"
                 >
-                  {/* Status Icon */}
                   <div className="flex justify-between items-start mb-6">
                     <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
                       {session.status === "COMPLETED" ? (
@@ -152,7 +152,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     </span>
                   </div>
 
-                  {/* Dynamic Info (Shows Tutor Name for Student, Student Name for Teacher) */}
                   <div className="flex items-center gap-2 mb-1">
                     <User size={14} className="text-zinc-600" />
                     <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">
@@ -167,7 +166,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     {role === "teacher" ? "Student ID: " : "Booking Ref: "} {session.id.slice(-6).toUpperCase()}
                   </p>
 
-                  {/* Time Info */}
                   <div className="flex items-center gap-4 py-4 border-y border-white/5 mb-6">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 uppercase">
                       <Calendar size={14} className="text-purple-600" /> 
@@ -179,8 +177,9 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     </div>
                   </div>
 
-                  {/* DYNAMIC BUTTONS BASED ON ROLE */}
+                  {/* ACTION BUTTONS */}
                   <div className="flex gap-2">
+                    {/* BUTTONS FOR UPCOMING/CONFIRMED SESSIONS */}
                     {session.status === "CONFIRMED" && (
                       <>
                         <Button 
@@ -217,11 +216,24 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                         )}
                       </>
                     )}
+
+                    {/* BUTTONS FOR COMPLETED SESSIONS (THE NEW REVIEW LOGIC) */}
                     {session.status === "COMPLETED" && (
-                      <Button disabled className="w-full rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black uppercase text-[10px] h-12">
-                        Session Archived
-                      </Button>
+                      role === "student" ? (
+                        <Button 
+                          onClick={() => router.push(`/student/addreview?studentId=${session.studentId}&tutorId=${session.tutorId}&bookingId=${session.id}`)}
+                          className="w-full rounded-xl bg-white text-black hover:bg-purple-600 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg"
+                        >
+                          <Star size={14} className="mr-2 fill-current text-yellow-500" /> Rate Experience
+                        </Button>
+                      ) : (
+                        <Button disabled className="w-full rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black uppercase text-[10px] h-12">
+                          Session Archived
+                        </Button>
+                      )
                     )}
+
+                    {/* BUTTONS FOR CANCELLED SESSIONS */}
                     {session.status === "CANCELLED" && (
                       <Button disabled className="w-full rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 font-black uppercase text-[10px] h-12">
                         Booking Cancelled
