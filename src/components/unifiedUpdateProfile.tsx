@@ -9,7 +9,7 @@ interface ExtendedUser {
   id: string;
   name: string;
   email: string;
-  role: "student" | "tutor" | "admin";
+  role: "STUDENT" | "TUTOR" | "ADMIN";
 }
 
 export default function GlobalUpdateProfile() {
@@ -30,7 +30,7 @@ export default function GlobalUpdateProfile() {
   useEffect(() => {
     if (user) {
       setUserName(user.name || "");
-      if (user.role === "tutor") {
+      if (user.role === "TUTOR") {
         fetchTutorData(user.id);
       }
     }
@@ -76,7 +76,7 @@ export default function GlobalUpdateProfile() {
 
       if (!userRes.ok) throw new Error("Failed to update user name.");
 
-      if (user?.role === "tutor" && tutorId) {
+      if (user?.role === "TUTOR" && tutorId) {
         const tutorRes = await fetch(`http://localhost:5000/api/tutor/update/${tutorId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -133,7 +133,7 @@ export default function GlobalUpdateProfile() {
             </div>
           </div>
 
-          {user?.role === "tutor" && (
+          {user?.role === "TUTOR" && (
             <div className="space-y-6 pt-8 border-t border-white/5 animate-in slide-in-from-bottom-4 duration-700">
                <h3 className="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                 <BookOpen size={14} className="text-purple-500" /> Professional Logic
