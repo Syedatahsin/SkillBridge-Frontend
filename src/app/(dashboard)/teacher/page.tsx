@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import TeacherOnboardingCard from "@/components/profileTeacher";
 import { ReviewSection } from "@/components/review";
 import SessionManagement from "@/components/sessionglasscard";
+export const dynamic = "force-dynamic";
 
 export default async function Page() {
   // 1. Call your existing Server Action

@@ -53,7 +53,7 @@ export default function TeacherOnboardingCard() {
             {/* Right Side: The "Power" Button */}
             <div className="w-full md:w-auto">
               <button 
-                onClick={() => router.push("/teacher/complete-profile")}
+                onClick={() => router.push("/teacher/completefullprofile")}
                 className="group relative w-full md:w-auto px-8 py-5 bg-white text-black font-black rounded-2xl transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.3)]"
               >
                 {/* Button Glow Effect */}

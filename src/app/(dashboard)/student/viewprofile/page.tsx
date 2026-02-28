@@ -1,6 +1,6 @@
 import UnifiedProfile from "@/components/viewallprofile"
 import { userService } from "@/Serveraction/cookiesaction";
-
+export const dynamic = "force-dynamic";
 const page = async () => {
     // 2. Fetch the session
       const { data: session } = await userService.getSession();

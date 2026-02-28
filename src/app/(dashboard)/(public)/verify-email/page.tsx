@@ -1,53 +1,92 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth-client"; // Your client config
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function VerifyEmailPage() {
+// 1. This component handles the actual logic and search params
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
-  const [status, setStatus] = useState("verifying");
+  
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [message, setMessage] = useState("Verifying your email address...");
 
   useEffect(() => {
-    async function verify() {
-      if (!token) {
-        setStatus("error");
-        return;
-      }
-
-      // This is the magic command that talks to your backend
-      const { data, error } = await authClient.verifyEmail({
-        query: { token },
-      });
-
-      if (error) {
-        toast.error(error.message || "Verification failed");
-        setStatus("error");
-      } else {
-        toast.success("Email verified! Redirecting...");
-        setStatus("success");
-       
-        router.push("/");
-      }
+    if (!token) {
+      setStatus("error");
+      setMessage("Verification token is missing.");
+      return;
     }
-    verify();
-  }, [token, router]);
+
+    const verifyToken = async () => {
+      try {
+        // Replace with your actual backend verification URL
+        const response = await fetch(`http://localhost:5000/api/auth/verify-email?token=${token}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setStatus("success");
+          setMessage("Your email has been successfully verified!");
+        } else {
+          setStatus("error");
+          setMessage(data.message || "Verification failed. The link may be expired.");
+        }
+      } catch (error) {
+        setStatus("error");
+        setMessage("An error occurred during verification. Please try again later.");
+      }
+    };
+
+    verifyToken();
+  }, [token]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-[#050505] text-white">
-      {status === "verifying" && (
-        <>
-          <Loader2 className="animate-spin text-purple-500 mb-4" size={48} />
-          <h1 className="text-2xl font-bold italic tracking-tighter">INITIALIZING ACCESS...</h1>
-        </>
-      )}
-      {status === "error" && (
-        <h1 className="text-red-500 font-bold">VERIFICATION LINK EXPIRED OR INVALID</h1>
-      )}
+    <Card className="w-full max-w-md border-white/10 bg-black/50 backdrop-blur-xl">
+      <CardHeader className="text-center">
+        <div className="flex justify-center mb-4">
+          {status === "loading" && <Loader2 className="h-12 w-12 text-purple-500 animate-spin" />}
+          {status === "success" && <CheckCircle className="h-12 w-12 text-green-500" />}
+          {status === "error" && <XCircle className="h-12 w-12 text-red-500" />}
+        </div>
+        <CardTitle className="text-2xl font-bold text-white">
+          {status === "loading" ? "Verifying..." : status === "success" ? "Verified!" : "Verification Failed"}
+        </CardTitle>
+        <CardDescription className="text-gray-400">
+          {message}
+        </CardDescription>
+      </CardHeader>
+      
+      <CardFooter className="flex justify-center">
+        {status !== "loading" && (
+          <Button 
+            onClick={() => router.push("/login")}
+            className="bg-purple-600 hover:bg-purple-700 text-white w-full"
+          >
+            Go to Login
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
+// 2. This is the main page that Next.js sees. 
+// It MUST wrap the content in Suspense to pass the Build phase.
+export default function VerifyEmailPage() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#050505] p-4">
+      <Suspense fallback={
+        <div className="flex flex-col items-center gap-4 text-white">
+          <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+          <p>Loading Verification Page...</p>
+        </div>
+      }>
+        <VerifyEmailContent />
+      </Suspense>
     </div>
   );
 }

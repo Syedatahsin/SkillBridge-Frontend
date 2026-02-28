@@ -47,11 +47,9 @@ export default function RegisterForm() {
         if (res?.error) {
           setHasError(true);
           
-          // Force extract data from the "invisible" error object
           const errData = res.error;
           const errorCode = errData.code || "";
           const errorMessage = errData.message || "An error occurred during registration.";
-
 
           if (errorCode.includes("USER_ALREADY_EXISTS") || errData.status === 422) {
             toast.error("Email Already Registered", {
@@ -76,7 +74,12 @@ export default function RegisterForm() {
           return;
         }
 
-        toast.success("Welcome aboard!", { id: toastId });
+        // Updated success toast with your requested message
+        toast.success("Registration done! Email sent to " + value.email, { 
+          id: toastId,
+          duration: 6000 
+        });
+        
         router.push("/");
 
       } catch (err: any) {

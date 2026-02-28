@@ -37,7 +37,6 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
         const res = await authClient.signIn.email({
           email: value.email,
           password: value.password,
-          callbackURL: "/dashboard",
         });
 
         // Handle auth errors
@@ -56,11 +55,11 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
 
         // Role-based redirection
         if (role === "STUDENT") {
-          router.push("/student-dashboard");
+          router.push("/student");
         } else if (role === "TUTOR") {
-          router.push("/teacher-dashboard");
+          router.push("/teacher");
         } else {
-          router.push("/dashboard");
+          router.push("/");
         }
       } catch (err) {
         toast.error("Connection error. Please try again.", {

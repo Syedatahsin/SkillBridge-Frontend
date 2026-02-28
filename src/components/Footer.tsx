@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Mail, Phone, MapPin, Send, Github, Linkedin, Instagram } from "lucide-react";
+import { Mail, Phone, Send, Github, Linkedin, Instagram } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +15,9 @@ export default function Footer() {
     setLoading(true);
     setSuccess("");
 
-    const formData = new FormData(e.target as HTMLFormElement);
+    // Use currentTarget to ensure TypeScript knows this is the Form element
+    const form = e.currentTarget;
+    const formData = new FormData(form);
 
     const payload = {
       name: formData.get("name"),
@@ -24,6 +26,7 @@ export default function Footer() {
     };
 
     try {
+      // PRO TIP: Replace localhost with process.env.NEXT_PUBLIC_API_URL for Render deployment
       const res = await fetch("http://localhost:5000/api/support/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -34,26 +37,27 @@ export default function Footer() {
 
       if (data.success) {
         setSuccess("Message sent successfully!");
-        e.target.reset();
+        form.reset(); // No more TypeScript error here
       } else {
         setSuccess("Failed to send message.");
       }
     } catch (err) {
       console.error(err);
       setSuccess("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
     <footer className="bg-black text-white border-t border-white/5 relative overflow-hidden">
+      {/* Decorative Background Glow */}
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 blur-[120px] pointer-events-none" />
 
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           
-          {/* Left Side */}
+          {/* Left Side: Contact Info */}
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl font-bold tracking-tight">
@@ -89,28 +93,28 @@ export default function Footer() {
             </div>
 
             <div className="flex gap-4 pt-4">
-  {[
-    { Icon: Github, url: "https://github.com/Syedatahsin" },
-    { Icon: Linkedin, url: "https://www.linkedin.com/in/syeda-anika-234376362?utm_source=share_via&utm_content=profile&utm_medium=member_android" },
-    { Icon: Instagram, url: "https://www.instagram.com/2000__whynot__?utm_source=qr&igsh=cmQ0N3ltcWFvMDNr" },
-  ].map(({ Icon, url }, i) => (
-    <a
-      key={i}
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="rounded-full"
-    >
-      <Button
-        variant="outline"
-        size="icon"
-        className="rounded-full border-white/10 bg-white/5 hover:bg-purple-600 hover:border-purple-600 transition-all"
-      >
-        <Icon size={18} />
-      </Button>
-    </a>
-  ))}
-</div>
+              {[
+                { Icon: Github, url: "https://github.com/Syedatahsin" },
+                { Icon: Linkedin, url: "https://www.linkedin.com/in/syeda-anika-234376362" },
+                { Icon: Instagram, url: "https://www.instagram.com/2000__whynot__" },
+              ].map(({ Icon, url }, i) => (
+                <a
+                  key={i}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full"
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="rounded-full border-white/10 bg-white/5 hover:bg-purple-600 hover:border-purple-600 transition-all"
+                  >
+                    <Icon size={18} />
+                  </Button>
+                </a>
+              ))}
+            </div>
           </div>
 
           {/* Right Side: Contact Form */}
@@ -121,6 +125,7 @@ export default function Footer() {
                   <label className="text-xs font-bold text-gray-500 uppercase ml-2">Full Name</label>
                   <Input
                     name="name"
+                    required
                     placeholder="John Doe"
                     className="bg-black/50 border-white/10 rounded-2xl h-12 focus-visible:ring-purple-500"
                   />
@@ -129,6 +134,8 @@ export default function Footer() {
                   <label className="text-xs font-bold text-gray-500 uppercase ml-2">Email</label>
                   <Input
                     name="email"
+                    type="email"
+                    required
                     placeholder="john@example.com"
                     className="bg-black/50 border-white/10 rounded-2xl h-12 focus-visible:ring-purple-500"
                   />
@@ -138,6 +145,7 @@ export default function Footer() {
                 <label className="text-xs font-bold text-gray-500 uppercase ml-2">Message</label>
                 <Textarea
                   name="message"
+                  required
                   placeholder="How can I help you?"
                   className="bg-black/50 border-white/10 rounded-2xl min-h-[120px] focus-visible:ring-purple-500 resize-none"
                 />
@@ -150,7 +158,11 @@ export default function Footer() {
                 {loading ? "Sending..." : "Send Message"}
                 <Send className="ml-2 size-4" />
               </Button>
-              {success && <p className="text-center mt-2 text-green-400">{success}</p>}
+              {success && (
+                <p className={`text-center mt-2 font-bold ${success.includes("success") ? "text-green-400" : "text-rose-400"}`}>
+                  {success}
+                </p>
+              )}
             </form>
           </div>
         </div>

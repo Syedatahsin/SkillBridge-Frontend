@@ -22,7 +22,7 @@ const Hero1 = ({
   heading = "Master Any Subject with Expert Guidance",
   description = "Connect with top-tier tutors, browse verified ratings, and book personalized 1-on-1 sessions. Your journey to mastery starts with the right teacher.",
   buttons = {
-    primary: { text: "Find Your Tutor", url: "/teacherlist" },
+    primary: { text: "Find Your Tutor", url: "/TeacherFullList" },
     secondary: { text: "Book a Schedule", url: "#" },
   },
   image = {

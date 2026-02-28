@@ -1,4 +1,5 @@
 import { userService } from "@/Serveraction/cookiesaction";
+export const dynamic = "force-dynamic";
 export default async function Dashboard() {
   const { data: session, error } = await userService.getSession();
 
