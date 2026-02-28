@@ -6,7 +6,7 @@ const page = () => {
        items-center: Centers vertically
        justify-center: Centers horizontally 
     */
-    <div className="min-h-screen bg-gray-900 text-white p-5 flex items-center justify-center">
+    <div className="min-h-screen bg-green-950 text-white p-5 flex items-center justify-center">
       <LoginForm />
     </div>
   );
