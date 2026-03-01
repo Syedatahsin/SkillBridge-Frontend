@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react"; // Added useEffect
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
@@ -24,6 +25,18 @@ import { Input } from "@/components/ui/input";
 
 export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
+  const { data: session } = authClient.useSession(); // Check current session status
+
+  // --- NEW LOGIC: AUTO-REDIRECT IF ALREADY LOGGED IN ---
+  useEffect(() => {
+    if (session?.user) {
+      const role = (session.user as any).role;
+      if (role === "STUDENT") router.push("/student");
+      else if (role === "TUTOR") router.push("/teacher");
+      else if (role === "ADMIN") router.push("/admin");
+    }
+  }, [session, router]);
+  // -----------------------------------------------------
 
   const form = useForm({
     defaultValues: {
@@ -58,6 +71,8 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           router.push("/student");
         } else if (role === "TUTOR") {
           router.push("/teacher");
+        } else if (role === "ADMIN") {
+          router.push("/admin");
         } else {
           router.push("/");
         }
@@ -102,7 +117,7 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
                   <Input
                     id={field.name}
                     type="email"
-                    className="bg-white/5 border-white/10 focus:border-purple-500 h-12"
+                    className="bg-white/5 border-white/10 focus:border-purple-500 h-12 text-white"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
@@ -123,7 +138,7 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
                   <Input
                     id={field.name}
                     type="password"
-                    className="bg-white/5 border-white/10 focus:border-purple-500 h-12"
+                    className="bg-white/5 border-white/10 focus:border-purple-500 h-12 text-white"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />

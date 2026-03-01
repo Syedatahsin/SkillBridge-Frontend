@@ -18,7 +18,7 @@ export default function SettingsPage() {
         {/* Navigation / Header Area */}
         <div className="max-w-2xl mx-auto mb-8 flex items-center justify-between">
           <Link 
-            href="/profile" 
+            href="/teacher/profileview" 
             className="group flex items-center gap-2 text-zinc-500 hover:text-white transition-all"
           >
             <div className="size-8 rounded-full border border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors">

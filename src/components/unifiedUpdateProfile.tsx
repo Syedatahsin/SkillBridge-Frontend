@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Loader2, Save, User as UserIcon, DollarSign, BookOpen, Settings, BadgeCheck } from "lucide-react";
 
-// 1. Define the interface to include the 'role' property
 interface ExtendedUser {
   id: string;
   name: string;
@@ -14,8 +13,6 @@ interface ExtendedUser {
 
 export default function GlobalUpdateProfile() {
   const { data: session, isPending: authLoading } = authClient.useSession();
-  
-  // 2. Cast the user to the ExtendedUser type
   const user = session?.user as ExtendedUser | undefined;
 
   const [loading, setLoading] = useState(false);
@@ -26,6 +23,9 @@ export default function GlobalUpdateProfile() {
   const [bio, setBio] = useState("");
   const [price, setPrice] = useState(0);
   const [exp, setExp] = useState(0);
+
+  // Fallback URL if process.env is not defined
+  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
   
   useEffect(() => {
     if (user) {
@@ -38,19 +38,19 @@ export default function GlobalUpdateProfile() {
 
   const fetchTutorData = async (uid: string) => {
     try {
-      const idRes = await fetch(`http://localhost:5000/api/tutor/tutorid/${uid}`);
-      const idData = await idRes.json();
+      const idRes = await fetch(`${API_BASE}/api/tutor/tutorid/${uid}`);
       
+      // Safety: If the API returns 404/Error, we just exit silently
+      if (!idRes.ok) return;
+
+      const idData = await idRes.json();
       const tid = idData.id || idData.tutorId || (typeof idData === "string" ? idData : null);
       
-      if (!tid) {
-        console.error("Tutor ID extraction failed. Received:", idData);
-        return;
-      }
+      if (!tid) return;
 
       setTutorId(tid);
 
-      const profileRes = await fetch(`http://localhost:5000/api/tutor/public/${tid}`);
+      const profileRes = await fetch(`${API_BASE}/api/tutor/public/${tid}`);
       if (profileRes.ok) {
         const profileData = await profileRes.json();
         setBio(profileData.bio || "");
@@ -58,7 +58,8 @@ export default function GlobalUpdateProfile() {
         setExp(profileData.experience || 0);
       }
     } catch (err) {
-      console.error("Error loading tutor data:", err);
+      // Logic: If there is no profile, we log it and do nothing. No error shown to user.
+      console.log("No existing tutor profile found for this account.");
     }
   };
 
@@ -68,16 +69,18 @@ export default function GlobalUpdateProfile() {
     setMessage({ type: "", text: "" });
 
     try {
-      const userRes = await fetch(`http://localhost:5000/api/users/update/${user?.id}`, {
+      // 1. Update User Name (Always happens)
+      const userRes = await fetch(`${API_BASE}/api/users/update/${user?.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: userName }),
       });
 
-      if (!userRes.ok) throw new Error("Failed to update user name.");
+      if (!userRes.ok) throw new Error("Failed to update account name.");
 
+      // 2. Update Tutor Profile (Only if a tutorId was successfully fetched)
       if (user?.role === "TUTOR" && tutorId) {
-        const tutorRes = await fetch(`http://localhost:5000/api/tutor/update/${tutorId}`, {
+        const tutorRes = await fetch(`${API_BASE}/api/tutor/update/${tutorId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ 
@@ -114,7 +117,7 @@ export default function GlobalUpdateProfile() {
             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Control Panel</span>
           </div>
           <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">
-             Update <span className="text-purple-600">{user?.role}</span>
+              Update <span className="text-purple-600">{user?.role}</span>
           </h2>
         </header>
 
@@ -165,7 +168,7 @@ export default function GlobalUpdateProfile() {
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 className="w-full bg-zinc-900/50 border border-white/5 rounded-2xl p-6 text-white font-medium focus:border-purple-600 outline-none transition-all resize-none"
-                placeholder="Write your professional bio..."
+                placeholder={tutorId ? "Write your professional bio..." : "No tutor profile linked to this account yet."}
               />
             </div>
           )}

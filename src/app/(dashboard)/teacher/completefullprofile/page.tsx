@@ -75,7 +75,7 @@ export default function CompleteFullProfilePage() {
 
         if (response.ok) {
           toast.success("Professional profile published!");
-          router.push("/teacher/dashboard");
+          router.push("/teacher");
         } else {
           const errorData = await response.json();
           toast.error(errorData.error || "Failed to save profile");

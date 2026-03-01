@@ -2,15 +2,22 @@
 
 import React, { useEffect, useState } from "react";
 import { 
-  User, ArrowLeft, Loader2, Mail, Calendar, ChevronRight 
+  User, ArrowLeft, Loader2, Mail, Calendar, ChevronRight, Star 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client"; 
 
 export default function AllTutorsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Cast session to 'any' to bypass the missing 'role' property error in TS
+  const { data: session } = authClient.useSession() as any; 
   const router = useRouter();
+
+  // Now TS won't complain about .role
+  const isAdmin = session?.user?.role === "ADMIN";
 
   const fetchFullList = async () => {
     try {
@@ -24,6 +31,22 @@ export default function AllTutorsPage() {
       console.error("Error fetching full teacher list:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleFeatured = async (e: React.MouseEvent, tutorId: string, currentStatus: boolean) => {
+    e.stopPropagation(); 
+    try {
+      const res = await fetch(`http://localhost:5000/api/tutor/feature/${tutorId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isFeatured: !currentStatus })
+      });
+      if (res.ok) {
+        fetchFullList(); 
+      }
+    } catch (error) {
+      console.error("Error updating featured status:", error);
     }
   };
 
@@ -62,6 +85,7 @@ export default function AllTutorsPage() {
                 <tr className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 border-b border-white/5 bg-white/[0.01]">
                   <th className="px-8 py-7">Instructor</th>
                   <th className="px-8 py-7">Status</th>
+                  {isAdmin && <th className="px-8 py-7 text-center">Featured</th>}
                   <th className="px-8 py-7">Joined Date</th>
                   <th className="px-8 py-7 text-right">View Profile</th>
                 </tr>
@@ -69,7 +93,7 @@ export default function AllTutorsPage() {
               <tbody className="divide-y divide-white/5">
                 {loading ? (
                   <tr>
-                    <td colSpan={4} className="py-32 text-center">
+                    <td colSpan={isAdmin ? 5 : 4} className="py-32 text-center">
                       <div className="flex flex-col items-center gap-4">
                         <Loader2 className="animate-spin text-purple-500" size={40} />
                         <p className="text-zinc-500 text-xs uppercase tracking-widest font-bold">Loading Directory...</p>
@@ -116,6 +140,22 @@ export default function AllTutorsPage() {
                         )}
                       </td>
 
+                      {/* FEATURED TOGGLE BUTTON FOR ADMINS ONLY */}
+                      {isAdmin && (
+                        <td className="px-8 py-6 text-center">
+                          <button
+                            onClick={(e) => handleToggleFeatured(e, tutor.id, tutor.isFeatured)}
+                            className={`p-2 rounded-xl border transition-all ${
+                              tutor.isFeatured 
+                              ? "bg-purple-500/20 border-purple-500 text-purple-500" 
+                              : "border-white/5 text-zinc-600 hover:border-purple-500/50 hover:text-purple-400"
+                            }`}
+                          >
+                            <Star size={18} fill={tutor.isFeatured ? "currentColor" : "none"} />
+                          </button>
+                        </td>
+                      )}
+
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-2 text-zinc-400 text-sm font-medium">
                           <Calendar size={14} className="text-zinc-600" />
@@ -132,7 +172,7 @@ export default function AllTutorsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="py-20 text-center text-zinc-600 italic">
+                    <td colSpan={isAdmin ? 5 : 4} className="py-20 text-center text-zinc-600 italic">
                       No instructors found in the database.
                     </td>
                   </tr>
