@@ -1,16 +1,11 @@
 @import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+
+/* In Tailwind v4, use @plugin instead of @import for these packages */
+@plugin "tailwindcss-animate";
+@plugin "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
-.animate-shake {
-  animation: shake 0.15s ease-in-out 0s 2;
-}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -45,6 +40,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -52,6 +48,15 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* Registering your custom shake animation for use as 'animate-shake' */
+  --animate-shake: shake 0.15s ease-in-out 0s 2;
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
 }
 
 :root {
