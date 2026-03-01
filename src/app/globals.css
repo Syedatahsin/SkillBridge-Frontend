@@ -1,10 +1,14 @@
 @import "tailwindcss";
 
-/* In Tailwind v4, use @plugin instead of @import for these packages */
+/* Keep this one, it works! */
 @plugin "tailwindcss-animate";
-@plugin "tw-animate-css";
+
+/* REMOVE THIS LINE: @plugin "tw-animate-css"; */
 
 @custom-variant dark (&:is(.dark *));
+
+
+
 
 @theme inline {
   --color-background: var(--background);
