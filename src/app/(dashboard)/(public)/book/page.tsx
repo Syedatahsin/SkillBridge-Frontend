@@ -1,14 +1,10 @@
 import { Toaster } from "sonner";
 import StudentBookingPage from '../../../../components/bookingslotspreview';
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function BookPage() {
   return (
     <>
-      {/* THE MISSING PIECE: This component actually draws the toast on screen */}
+      {/* The Toaster can stay here or be moved to your layout.tsx */}
       <Toaster 
         theme="dark" 
         richColors 
@@ -22,8 +18,8 @@ export default function DashboardLayout({
       />
       
       <div className="container mx-auto px-4 py-8">
-        <StudentBookingPage/>
-        {children}
+        <h1 className="text-2xl font-bold mb-6">Book Your Session</h1>
+        <StudentBookingPage />
       </div>
     </>
   );
