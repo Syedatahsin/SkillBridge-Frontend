@@ -36,7 +36,7 @@ export default function SmartSlotCreator() {
     onSubmit: async ({ value }) => {
       // 1. Create the promise for the fetch call
       const createSlotPromise = async () => {
-        const response = await fetch(`http://localhost:5000/api/availability/create`, {
+        const response = await fetch(`${process.env.BACKEND_URL}/api/availability/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

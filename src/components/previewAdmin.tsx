@@ -21,9 +21,9 @@ export default function AdminDashboard() {
         
         // Fetch all data in parallel
         const [tutorRes, studentRes, bookingRes] = await Promise.all([
-          fetch("http://localhost:5000/api/tutor/alltutor?limit=10"),
-          fetch("http://localhost:5000/api/users?role=STUDENT&limit=10"),
-          fetch("http://localhost:5000/api/bookings/bookings?limit=10")
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/alltutor?limit=10`),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?role=STUDENT&limit=10`),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/bookings?limit=10`)
         ]);
 
         const tutorJson = await tutorRes.json();

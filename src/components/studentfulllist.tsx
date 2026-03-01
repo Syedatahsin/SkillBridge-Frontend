@@ -16,7 +16,7 @@ export default function AllStudentsPage() {
     try {
       setLoading(true);
       // We pass limit=0 to get everyone, and role=STUDENT to filter
-      const res = await fetch(`http://localhost:5000/api/users?limit=0&role=STUDENT`);
+      const res = await fetch(`${process.env.BACKEND_URL}/api/users?limit=0&role=STUDENT`);
       const json = await res.json();
       
       if (json.success) {

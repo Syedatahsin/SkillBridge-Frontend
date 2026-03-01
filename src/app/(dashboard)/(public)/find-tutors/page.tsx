@@ -37,7 +37,7 @@ function TutorsListContent() {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:5000/api/tutor/public/getSEARCHtutors?${searchParams.toString()}`
+          `${process.env.BACKEND_URL}/api/tutor/public/getSEARCHtutors?${searchParams.toString()}`
         );
         const data = await response.json();
         // Ensure data is an array before setting state

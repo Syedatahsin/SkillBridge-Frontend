@@ -27,7 +27,7 @@ export default function Footer() {
 
     try {
       // PRO TIP: Replace localhost with process.env.NEXT_PUBLIC_API_URL for Render deployment
-      const res = await fetch("http://localhost:5000/api/support/contact", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/support/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

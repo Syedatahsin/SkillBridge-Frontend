@@ -52,7 +52,7 @@ export default function FeaturedMasters() {
       try {
         setLoading(true);
         // Ensure this matches your backend PORT
-        const response = await fetch("http://localhost:5000/api/tutor/public/featured");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/public/featured`);
         
         if (!response.ok) throw new Error("Failed to fetch");
         

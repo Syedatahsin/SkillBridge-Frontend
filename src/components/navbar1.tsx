@@ -57,7 +57,7 @@ export default function SkillBridgeNavbar({ role = "public", userId }: NavbarPro
     setMounted(true);
     const fetchSubjects = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/categories/get");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/get`);
         if (response.ok) {
           const result = await response.json();
           const data = Array.isArray(result) ? result : result.data;

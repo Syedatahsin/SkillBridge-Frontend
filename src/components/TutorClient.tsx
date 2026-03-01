@@ -46,7 +46,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
     const toastId = toast.loading("Updating featured status...");
     
     try {
-      const res = await fetch(`http://localhost:5000/api/tutor/feature/${tutorData.id}`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/tutor/feature/${tutorData.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isFeatured: nextFeatureValue })
@@ -76,7 +76,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
 
     try {
       // Endpoint:https://skillbridge-vert-six.vercel.app/api/users/update-status
-      const res = await fetch(`http://localhost:5000/api/users/update-status`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/users/update-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -111,7 +111,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
     const toastId = toast.loading("Processing booking...");
 
     try {
-      const response = await fetch("http://localhost:5000/api/bookings/", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

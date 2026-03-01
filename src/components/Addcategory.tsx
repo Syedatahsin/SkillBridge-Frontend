@@ -28,7 +28,7 @@ export default function AddCategoryForm() {
 
       try {
         // FIX: Added absolute URL to hit your Express Port 5000
-        const res = await fetch("http://localhost:5000/api/categories/admin/categories", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/admin/categories`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(value),

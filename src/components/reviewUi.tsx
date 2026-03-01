@@ -37,7 +37,7 @@ export default function SubmitReviewForm({ tutorId, bookingId, studentId }: Subm
       const toastId = toast.loading("Syncing your feedback...");
 
       try {
-        const response = await fetch("http://localhost:5000/api/reviews/create", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

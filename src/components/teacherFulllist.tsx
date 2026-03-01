@@ -22,7 +22,7 @@ export default function AllTutorsPage() {
   const fetchFullList = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`http://localhost:5000/api/tutor/alltutor?limit=0`);
+      const res = await fetch(`${process.env.BACKEND_URL}/api/tutor/alltutor?limit=0`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
@@ -37,7 +37,7 @@ export default function AllTutorsPage() {
   const handleToggleFeatured = async (e: React.MouseEvent, tutorId: string, currentStatus: boolean) => {
     e.stopPropagation(); 
     try {
-      const res = await fetch(`http://localhost:5000/api/tutor/feature/${tutorId}`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/tutor/feature/${tutorId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isFeatured: !currentStatus })

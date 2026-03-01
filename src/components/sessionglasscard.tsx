@@ -27,8 +27,8 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     try {
       setLoading(true);
       const endpoint = role === "student" 
-        ? `http://localhost:5000/api/bookings/studentbookings?userId=${userId}`
-        : `http://localhost:5000/api/bookings/tutorbookings?userId=${userId}`;
+        ? `${process.env.BACKEND_URL}/api/bookings/studentbookings?userId=${userId}`
+        : `${process.env.BACKEND_URL}/api/bookings/tutorbookings?userId=${userId}`;
 
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to load sessions");
@@ -52,7 +52,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     onSubmit: async ({ value }) => {
       const toastId = toast.loading("Finalizing session...");
       try {
-        const res = await fetch(`http://localhost:5000/api/bookings/tutorbookings/complete/${value.bookingId}`, {
+        const res = await fetch(`${process.env.BACKEND_URL}/api/bookings/tutorbookings/complete/${value.bookingId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" }
         });
@@ -72,7 +72,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
 
     const toastId = toast.loading("Cancelling booking...");
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/studentbookings/cancel/${bookingId}`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/bookings/studentbookings/cancel/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" }
       });

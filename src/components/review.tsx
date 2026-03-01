@@ -16,7 +16,7 @@ export const ReviewSection = ({ userId }: { userId: string }) => {
       try {
         // We use the same stats endpoint. 
         // Your backend Service handles the OR logic to find the profile!
-        const res = await fetch(`http://localhost:5000/api/reviews/stats/${userId}`);
+        const res = await fetch(`${process.env.BACKEND_URL}/api/reviews/stats/${userId}`);
         const json = await res.json();
         setData(json);
       } catch (err) {

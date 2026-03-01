@@ -41,11 +41,11 @@ export default function UnifiedProfile() {
       if (!isPending && user?.role === "TUTOR" && userId) {
         try {
           setLoadingExtra(true);
-          const idRes = await fetch(`http://localhost:5000/api/tutor/tutorid/${userId}`);
+          const idRes = await fetch(`${process.env.BACKEND_URL}/api/tutor/tutorid/${userId}`);
           const idData = await idRes.json();
           const tutorId = idData.id || idData.tutorId || idData;
 
-          const profileRes = await fetch(`http://localhost:5000/api/tutor/public/${tutorId}`);
+          const profileRes = await fetch(`${process.env.BACKEND_URL}/api/tutor/public/${tutorId}`);
           const profileData = await profileRes.json();
           setTutorData(profileData);
         } catch (err) {

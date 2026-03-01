@@ -45,7 +45,7 @@ export default function CategorySection({ role = "public" }: CategorySectionProp
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const res = await fetch("http://localhost:5000/api/categories/get");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/get`);
         const data = await res.json();
 
         if (Array.isArray(data)) {

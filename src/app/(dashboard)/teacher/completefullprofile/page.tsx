@@ -28,7 +28,7 @@ export default function CompleteFullProfilePage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/categories/get");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/categories/get`);
         const data = await res.json();
         if (res.ok) setCategories(data);
       } catch (err) {
@@ -61,7 +61,7 @@ export default function CompleteFullProfilePage() {
 
       setLoading(true);
       try {
-        const response = await fetch("http://localhost:5000/api/tutor/", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

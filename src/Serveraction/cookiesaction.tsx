@@ -1,6 +1,6 @@
 import { cookies, headers } from "next/headers";
 
-const AUTH_URL = process.env.AUTH_URL || "http://localhost:5000/api/auth";
+const AUTH_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth`;
 
 export const userService = {
   getSession: async function () {

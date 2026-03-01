@@ -43,7 +43,7 @@ export default function StudentClient({ userData, initialSession }: StudentClien
     const toastId = toast.loading(`Updating to ${nextStatusString}...`);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/users/update-status`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/users/update-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

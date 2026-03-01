@@ -33,7 +33,7 @@ export default function BookingCard({ booking, userRole }: BookingCardProps) {
   const updateStatus = async (newStatus: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${booking.id}/status`, {
+      const res = await fetch(`${process.env.BACKEND_URL}/api/bookings/${booking.id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

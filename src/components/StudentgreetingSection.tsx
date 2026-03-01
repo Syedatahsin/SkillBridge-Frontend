@@ -20,7 +20,7 @@ export default function StudentWelcome() {
       try {
         setLoading(true);
         // 2. Fetch data based on the ID from session
-        const res = await fetch(`http://localhost:5000/api/users/${session.user.id}`);
+        const res = await fetch(`${process.env.BACKEND_URL}/api/users/${session.user.id}`);
         const json = await res.json();
         
         if (json.success) {

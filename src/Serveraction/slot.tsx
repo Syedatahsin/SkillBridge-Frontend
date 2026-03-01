@@ -14,7 +14,7 @@ export async function getTutorSessionAction() {
   try {
     // 2. Fetch tutorId from your Express Backend
     // Just a simple fetch to your GET route
-    const res = await fetch(`http://localhost:5000/api/tutor/tutorid/${userId}`);
+    const res = await fetch(`${process.env.BACKEND_URL}/api/tutor/tutorid/${userId}`);
     const data = await res.json();
 
     if (!res.ok) return { success: false, error: data.message };
