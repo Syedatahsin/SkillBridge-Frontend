@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { 
   ShieldAlert, ShieldCheck, Loader2, CheckCircle2, 
-  Star, Calendar, Clock, Lock 
+  Star, Calendar, Clock, Lock, MessageSquare, UserCircle 
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -26,11 +26,33 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
   const [isUpdatingFeature, setIsUpdatingFeature] = useState(false); 
   const [loadingSlotId, setLoadingSlotId] = useState<string | null>(null);
   
+  // Review Specific States
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
+
   // Local Sync States
   const [localStatus, setLocalStatus] = useState(tutorData.user?.status || "ACTIVE");
   const [isFeatured, setIsFeatured] = useState(tutorData.isFeatured || false);
 
-  // Sync with Server Data on page load/refresh
+  // Fetch Reviews manually inside this component
+  useEffect(() => {
+    const fetchAllReviews = async () => {
+      try {
+        setLoadingReviews(true);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews/${tutorData.id}`);
+        const data = await res.json();
+        // Handle both cases: if it's an array or if it's wrapped in an object
+        setReviews(Array.isArray(data) ? data : data.reviews || []);
+      } catch (err) {
+        console.error("Failed to load reviews");
+      } finally {
+        setLoadingReviews(false);
+      }
+    };
+
+    if (tutorData.id) fetchAllReviews();
+  }, [tutorData.id]);
+
   useEffect(() => {
     if (tutorData.user?.status) setLocalStatus(tutorData.user.status);
     if (tutorData.isFeatured !== undefined) setIsFeatured(tutorData.isFeatured);
@@ -44,16 +66,13 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
     setIsUpdatingFeature(true);
     const nextFeatureValue = !isFeatured;
     const toastId = toast.loading("Updating featured status...");
-    
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}/api/tutor/feature/${tutorData.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/feature/${tutorData.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isFeatured: nextFeatureValue })
       });
-
       if (!res.ok) throw new Error("Failed to update feature status");
-
       setIsFeatured(nextFeatureValue);
       toast.success(nextFeatureValue ? "Tutor Featured!" : "Feature Removed", { id: toastId });
       router.refresh();
@@ -64,33 +83,22 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
     }
   };
 
-  // --- ADMIN ACTION: BAN/UNBAN (FIXED PAYLOAD) ---
+  // --- ADMIN ACTION: BAN/UNBAN ---
   const handleToggleBan = async () => {
     const targetUserId = tutorData.user?.id; 
     const nextStatusString = isCurrentlyBanned ? "ACTIVE" : "BANNED";
-
     if (!targetUserId) return toast.error("User ID not found");
-
     setIsUpdatingStatus(true);
     const toastId = toast.loading(`Updating status to ${nextStatusString}...`);
-
     try {
-      // Endpoint:https://skillbridge-vert-six.vercel.app/api/users/update-status
-      const res = await fetch(`${process.env.BACKEND_URL}/api/users/update-status`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/update-status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId: targetUserId,    // Matches 'userId' in your controller
-          status: nextStatusString // Matches 'status' in your controller
-        })
+        body: JSON.stringify({ userId: targetUserId, status: nextStatusString })
       });
-
       const result = await res.json();
       if (!res.ok) throw new Error(result.message || "Update failed");
-
-      // Update Local UI State Immediately
       setLocalStatus(nextStatusString);
-      
       toast.success(`User is now ${nextStatusString}`, { id: toastId });
       router.refresh(); 
     } catch (error: any) {
@@ -106,10 +114,8 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
       toast.error("Please login to book a session");
       return router.push("/login");
     }
-
     setLoadingSlotId(availabilityId);
     const toastId = toast.loading("Processing booking...");
-
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/`, {
         method: "POST",
@@ -121,15 +127,13 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
           meetingLink: "https://meet.google.com/new",
         }),
       });
-
       if (!response.ok) {
         const result = await response.json();
         throw new Error(result.message || "Booking failed");
       }
-
       toast.success("Booking confirmed!", { id: toastId });
       router.refresh(); 
-      router.push("/student-dashboard");
+      router.push("/student");
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {
@@ -158,9 +162,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                 </p>
               </div>
             </div>
-            
             <div className="flex flex-wrap justify-center gap-4">
-              {/* FEATURED TOGGLE */}
               <Button
                 onClick={handleToggleFeatured}
                 disabled={isUpdatingFeature}
@@ -178,8 +180,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                   </span>
                 )}
               </Button>
-
-              {/* BAN TOGGLE */}
               <Button 
                 onClick={handleToggleBan}
                 disabled={isUpdatingStatus}
@@ -214,13 +214,11 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
               </div>
             )}
           </div>
-          
           <div className="flex-1 text-center md:text-left space-y-6">
             <div className="flex items-center justify-center md:justify-start gap-5">
               <h1 className="text-7xl font-black tracking-tighter uppercase leading-none">{tutorData.user?.name}</h1>
               {!isCurrentlyBanned && <CheckCircle2 className="text-blue-500 size-10 fill-blue-500/10" />}
             </div>
-            
             <div className="flex flex-wrap justify-center md:justify-start gap-3">
               {tutorData.categories?.map((cat: any) => (
                 <Badge key={cat.categoryId} className="bg-white/5 hover:bg-white/10 text-purple-300 border-none px-6 py-2 rounded-xl text-sm font-bold uppercase tracking-wider">
@@ -229,7 +227,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
               ))}
             </div>
           </div>
-
           <div className="bg-zinc-900/90 p-10 rounded-[3.5rem] border border-white/5 text-center min-w-[240px] backdrop-blur-xl shadow-2xl">
               <p className="text-6xl font-black text-white tracking-tighter">${tutorData.pricePerHour}</p>
               <p className="text-zinc-500 text-xs font-black uppercase tracking-[0.2em] mt-2">Hourly Rate</p>
@@ -242,7 +239,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
             <div className="h-10 w-2 bg-purple-600 rounded-full shadow-[0_0_15px_rgba(147,51,234,0.5)]" />
             <h2 className="text-5xl font-black tracking-tight uppercase">Available Slots</h2>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {tutorData.availability?.length > 0 ? (
               tutorData.availability.map((slot: any) => {
@@ -267,26 +263,15 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                         <span>{format(new Date(slot.startTime), "hh:mm a")}</span>
                       </div>
                     </div>
-
                     <Button 
                       onClick={() => handleBooking(slot.id)}
                       disabled={isUnavailable || !!loadingSlotId}
                       className={cn(
                         "w-full h-16 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] transition-all",
-                        isUnavailable 
-                          ? "bg-zinc-800 text-zinc-600" 
-                          : "bg-white text-black hover:bg-purple-600 hover:text-white shadow-2xl active:scale-95"
+                        isUnavailable ? "bg-zinc-800 text-zinc-600" : "bg-white text-black hover:bg-purple-600 hover:text-white shadow-2xl active:scale-95"
                       )}
                     >
-                      {loadingSlotId === slot.id ? (
-                        <Loader2 className="animate-spin size-5" />
-                      ) : isCurrentlyBanned ? (
-                        "Suspended"
-                      ) : slot.isBooked ? (
-                        "Booked"
-                      ) : (
-                        "Reserve Spot"
-                      )}
+                      {loadingSlotId === slot.id ? <Loader2 className="animate-spin size-5" /> : isCurrentlyBanned ? "Suspended" : slot.isBooked ? "Booked" : "Reserve Spot"}
                     </Button>
                   </div>
                 );
@@ -297,6 +282,66 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
               </div>
             )}
           </div>
+        </div>
+
+        {/* --- INLINE REVIEWS (HTML NEW) --- */}
+        <div className="space-y-10 pt-20">
+          <div className="flex items-center gap-5">
+            <div className="h-10 w-2 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
+            <h2 className="text-5xl font-black tracking-tight uppercase">Student Reviews</h2>
+          </div>
+
+          {loadingReviews ? (
+            <div className="flex flex-col items-center py-20 bg-white/[0.02] rounded-[3rem] border border-white/5">
+              <Loader2 className="animate-spin text-purple-500 size-10 mb-4" />
+              <p className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-[10px]">Loading Feedback...</p>
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {reviews.map((rev: any) => (
+                <div key={rev.id} className="bg-[#0A0A0B] border border-white/10 p-10 rounded-[3.5rem] flex flex-col justify-between hover:border-purple-500/20 transition-all group">
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-center gap-4">
+                        <div className="size-14 rounded-2xl bg-zinc-900 border border-white/10 overflow-hidden">
+                          {rev.student?.image ? (
+                            <img src={rev.student.image} className="w-full h-full object-cover" alt="Student" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-zinc-700">
+                               <UserCircle size={30} />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-lg font-black italic uppercase tracking-tight text-white">{rev.student?.name}</p>
+                          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                            {rev.createdAt ? formatDistanceToNow(new Date(rev.createdAt)) + " ago" : "Recent"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-1 text-yellow-500 bg-yellow-500/5 px-3 py-1.5 rounded-full border border-yellow-500/10">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={12} fill={i < rev.rating ? "currentColor" : "none"} strokeWidth={i < rev.rating ? 0 : 2} />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-zinc-400 text-lg leading-relaxed italic font-medium">
+                      &quot;{rev.comment}&quot;
+                    </p>
+                  </div>
+                  <div className="mt-8 pt-6 border-t border-white/5">
+                     <div className="flex items-center gap-2 text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+                        <MessageSquare size={12} className="text-purple-500" /> Verified Booking
+                     </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-24 text-center border-2 border-dashed border-white/5 rounded-[4rem] bg-white/[0.01]">
+               <p className="text-zinc-600 text-xs font-black uppercase tracking-[0.4em]">Zero testimonials recorded</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

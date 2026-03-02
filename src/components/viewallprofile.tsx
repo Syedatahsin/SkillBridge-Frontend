@@ -20,7 +20,7 @@ export default function UnifiedProfile({ userId, role }: ProfileProps) {
       try {
         setLoading(true);
         // We call a unified endpoint that returns User + TutorProfile (if teacher)
-        const response = await fetch(`${process.env.BACKEND_URL}/api/users/${userId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/${userId}`);
         const data = await response.json();
         setProfileData(data);
       } catch (error) {

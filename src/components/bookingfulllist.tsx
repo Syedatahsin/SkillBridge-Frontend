@@ -16,7 +16,7 @@ export default function AllBookingsPage() {
     try {
       setLoading(true);
       // Fetching all bookings (limit=0) using the standardized endpoint
-      const res = await fetch(`${process.env.BACKEND_URL}/api/bookings/bookings?limit=0`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/bookings?limit=0`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);

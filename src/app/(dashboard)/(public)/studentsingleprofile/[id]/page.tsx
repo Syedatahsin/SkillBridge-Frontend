@@ -12,16 +12,16 @@ export default async function Page({ params }: PageProps) {
 
   if (!id) return notFound();
 
-  // 1. Get current viewer's session
+  // 1. Get current viewer's session (to check if Admin)
   const { data: session } = await userService.getSession();
 
   try {
-    // 2. Fetch User data directly (using the users endpoint)
+    // 2. Fetch User data with a timestamp to prevent stale cache
     const userRes = await fetch(
-      `http://127.0.0.1:5000/api/users/${id}`, 
+      `http://127.0.0.1:5000/api/users/${id}?t=${Date.now()}`, 
       {
         method: 'GET',
-        cache: 'no-store',
+        cache: 'no-store', // Ensures fresh data on every request
       }
     );
 
@@ -29,7 +29,6 @@ export default async function Page({ params }: PageProps) {
 
     const userData = await userRes.json();
 
-    // Pass data to the Client Component
     return <StudentClient userData={userData} initialSession={session || null} />;
 
   } catch (error) {

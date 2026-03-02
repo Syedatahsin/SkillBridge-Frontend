@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
-import { Loader2, Sparkles, Save, Calendar as CalendarIcon, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Loader2, Sparkles, Calendar as CalendarIcon, Clock, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getTutorSessionAction } from "@/Serveraction/slot";
@@ -12,6 +12,9 @@ export default function SmartSlotCreator() {
   const [tutorId, setTutorId] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(true);
   const today = new Date().toISOString().split("T")[0];
+
+  // Helper to ensure URL is never undefined
+  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
   useEffect(() => {
     async function verifyTutor() {
@@ -34,9 +37,11 @@ export default function SmartSlotCreator() {
   const form = useForm({
     defaultValues: { date: today, start: "09:00", end: "10:00" },
     onSubmit: async ({ value }) => {
-      // 1. Create the promise for the fetch call
+     
+  console.log("Submitting Tutor ID:", tutorId); // check your browser console!
+  // ... rest of the code
       const createSlotPromise = async () => {
-        const response = await fetch(`${process.env.BACKEND_URL}/api/availability/create`, {
+        const response = await fetch(`${BASE_URL}/api/availability/create`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -46,19 +51,26 @@ export default function SmartSlotCreator() {
           }),
         });
 
+        const contentType = response.headers.get("content-type");
+
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to create slot");
+          // If the backend sent JSON error (like overlap error)
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to create slot");
+          } else {
+            // If the backend sent an HTML error page (404/500)
+            throw new Error(`Server Error: Received HTML instead of JSON. Check if ${BASE_URL} is correct.`);
+          }
         }
         
         return response.json();
       };
 
-      // 2. Trigger the Toast Promise
       toast.promise(createSlotPromise(), {
         loading: 'Syncing with database...',
         success: () => {
-          form.reset(); // Clear form on success
+          form.reset();
           return 'Slot created successfully!';
         },
         error: (err) => `${err.message}`,

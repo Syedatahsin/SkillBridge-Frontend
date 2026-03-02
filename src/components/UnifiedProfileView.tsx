@@ -5,10 +5,10 @@ import Link from "next/link";
 import { authClient } from "@/lib/auth-client"; 
 import { 
   User as UserIcon, Mail, ShieldCheck, GraduationCap, 
-  Star, DollarSign, BookOpen, Loader2, MessageSquare, 
-  Clock, CalendarCheck, CalendarDays
+  Loader2, MessageSquare, 
+  CalendarDays
 } from "lucide-react";
-import { format } from "date-fns"; // Recommended for date formatting
+import { format } from "date-fns";
 
 interface Availability {
   id: string;
@@ -25,7 +25,7 @@ interface TutorProfile {
   categories: { name: string }[];
   reviews: { rating: number; comment?: string; student?: { name: string } }[];
   bookings: any[];
-  availability: Availability[]; // Added based on your Prisma Schema
+  availability: Availability[];
 }
 
 export default function UnifiedProfile() {
@@ -33,6 +33,7 @@ export default function UnifiedProfile() {
   const [tutorData, setTutorData] = useState<TutorProfile | null>(null);
   const [loadingExtra, setLoadingExtra] = useState(false);
 
+  // Cast to any to bypass the 'role' property error
   const user = session?.user as any; 
   const userId = user?.id;
 
@@ -41,11 +42,11 @@ export default function UnifiedProfile() {
       if (!isPending && user?.role === "TUTOR" && userId) {
         try {
           setLoadingExtra(true);
-          const idRes = await fetch(`${process.env.BACKEND_URL}/api/tutor/tutorid/${userId}`);
+          const idRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/tutorid/${userId}`);
           const idData = await idRes.json();
           const tutorId = idData.id || idData.tutorId || idData;
 
-          const profileRes = await fetch(`${process.env.BACKEND_URL}/api/tutor/public/${tutorId}`);
+          const profileRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/public/${tutorId}`);
           const profileData = await profileRes.json();
           setTutorData(profileData);
         } catch (err) {
@@ -70,24 +71,33 @@ export default function UnifiedProfile() {
   return (
     <div className="max-w-6xl mx-auto space-y-8 p-6 pb-20">
       
-      {/* HEADER SECTION (Same as before) */}
+      {/* HEADER SECTION */}
       <div className="bg-[#0A0A0B] border border-white/10 rounded-[3.5rem] p-8 md:p-14 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-purple-600/10 blur-[130px] -z-10" />
         <div className="flex flex-col md:flex-row items-center gap-12 text-center md:text-left">
-           <div className="size-44 md:size-56 rounded-[3.5rem] bg-zinc-900 border border-white/10 overflow-hidden shadow-2xl">
-              {user.image ? <img src={user.image} className="w-full h-full object-cover" alt="User" /> : <UserIcon className="size-24 text-zinc-800 m-auto mt-12" />}
+           <div className="size-44 md:size-56 rounded-[3.5rem] bg-zinc-900 border border-white/10 overflow-hidden shadow-2xl flex items-center justify-center">
+              {/* Added optional chaining here to fix the crash */}
+              {user?.image ? (
+                <img src={user.image} className="w-full h-full object-cover" alt="User" />
+              ) : (
+                <UserIcon className="size-24 text-zinc-800 m-auto" />
+              )}
            </div>
            <div className="flex-1">
              <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/20 text-purple-500 px-5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-               <ShieldCheck size={14} /> Professional {user.role} Verified
+               <ShieldCheck size={14} /> Professional {user?.role} Verified
              </div>
-             <h1 className="text-6xl md:text-9xl font-black text-white italic uppercase tracking-tighter leading-none mb-4">{user.name}</h1>
-             <p className="text-zinc-500 font-bold text-sm tracking-widest uppercase flex items-center justify-center md:justify-start gap-2"><Mail size={16} /> {user.email}</p>
+             <h1 className="text-6xl md:text-9xl font-black text-white italic uppercase tracking-tighter leading-none mb-4">
+               {user?.name}
+             </h1>
+             <p className="text-zinc-500 font-bold text-sm tracking-widest uppercase flex items-center justify-center md:justify-start gap-2">
+               <Mail size={16} /> {user?.email}
+             </p>
            </div>
         </div>
       </div>
 
-      {user.role === "TUTOR" && tutorData && (
+      {user?.role === "TUTOR" && tutorData && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* LEFT: BIO & STATS (Span 2) */}
@@ -99,25 +109,32 @@ export default function UnifiedProfile() {
               <p className="text-zinc-400 text-lg leading-relaxed">{tutorData.bio}</p>
             </div>
 
-            {/* REVIEWS (Same as before) */}
             <div className="bg-[#0A0A0B] border border-white/10 p-10 rounded-[3rem]">
               <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-6 flex items-center gap-3">
                 <MessageSquare className="text-purple-500" /> Testimonials
               </h3>
-              {/* ... reviews mapping ... */}
-              {!hasReviews ? <p className="text-zinc-600 text-xs italic">No reviews yet.</p> : null}
+              {hasReviews ? (
+                <div className="space-y-4">
+                   {tutorData.reviews.map((rev, idx) => (
+                    <div key={idx} className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                      <p className="text-white font-bold">{rev.student?.name || "Anonymous"}</p>
+                      <p className="text-zinc-400 text-sm italic">"{rev.comment}"</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-zinc-600 text-xs italic">No reviews yet.</p>
+              )}
             </div>
           </div>
 
           {/* RIGHT: AVAILABILITY & QUICK STATS */}
           <div className="space-y-8">
-            {/* PRICE CARD */}
             <div className="bg-purple-600 p-8 rounded-[2.5rem] shadow-xl shadow-purple-900/20">
                <p className="text-[10px] font-black text-purple-200 uppercase tracking-[0.2em] mb-2">Hourly Rate</p>
                <h2 className="text-5xl font-black text-white italic">${tutorData.pricePerHour}<span className="text-sm not-italic opacity-70">/hr</span></h2>
             </div>
 
-            {/* AVAILABILITY SLOTS */}
             <div className="bg-[#0A0A0B] border border-white/10 p-8 rounded-[3rem]">
               <h3 className="text-lg font-black text-white uppercase tracking-widest mb-6 flex items-center gap-3">
                 <CalendarDays className="text-purple-500" size={20} /> Time Slots
@@ -157,14 +174,13 @@ export default function UnifiedProfile() {
                 )}
               </div>
               
-       <Link href="/teacher/slotcreation" className="block w-full mt-6">
-  <button className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest transition-all hover:border-purple-500/50 hover:text-purple-400">
-    Manage Schedule
-  </button>
-</Link>
+              <Link href="/teacher/slotcreation" className="block w-full mt-6">
+                <button className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest transition-all hover:border-purple-500/50 hover:text-purple-400">
+                  Manage Schedule
+                </button>
+              </Link>
             </div>
 
-            {/* QUICK STATS */}
             <div className="bg-[#0A0A0B] border border-white/10 p-8 rounded-[2.5rem] grid grid-cols-2 gap-4">
                <div>
                   <p className="text-[9px] font-black text-zinc-600 uppercase mb-1">Experience</p>

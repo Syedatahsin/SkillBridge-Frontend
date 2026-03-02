@@ -22,13 +22,16 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. DYNAMIC FETCH LOGIC
+  // --- HELPER FOR THE URL ---
+  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
+  // 1. FETCH LOGIC (READING DATA)
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
       const endpoint = role === "student" 
-        ? `${process.env.BACKEND_URL}/api/bookings/studentbookings?userId=${userId}`
-        : `${process.env.BACKEND_URL}/api/bookings/tutorbookings?userId=${userId}`;
+        ? `${BASE_URL}/api/bookings/studentbookings?userId=${userId}`
+        : `${BASE_URL}/api/bookings/tutorbookings?userId=${userId}`;
 
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to load sessions");
@@ -36,49 +39,50 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
       const data = await response.json();
       setSessions(data);
     } catch (err) {
+      console.error("Sync Error:", err);
       toast.error("Could not sync schedule");
     } finally {
       setLoading(false);
     }
-  }, [userId, role]);
+  }, [userId, role, BASE_URL]);
 
   useEffect(() => {
     if (userId) fetchSessions();
   }, [fetchSessions, userId]);
 
-  // 2. TEACHER MUTATION (Complete Session)
+  // 2. TEACHER MUTATION (COMPLETING A SESSION)
   const completeForm = useForm({
     defaultValues: { bookingId: "" },
     onSubmit: async ({ value }) => {
       const toastId = toast.loading("Finalizing session...");
       try {
-        const res = await fetch(`${process.env.BACKEND_URL}/api/bookings/tutorbookings/complete/${value.bookingId}`, {
+        const res = await fetch(`${BASE_URL}/api/bookings/tutorbookings/complete/${value.bookingId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" }
         });
         if (!res.ok) throw new Error("Update failed");
         toast.success("Session completed!", { id: toastId });
-        fetchSessions();
+        fetchSessions(); // Refresh the list
       } catch (err) {
         toast.error("Error updating status", { id: toastId });
       }
     },
   });
 
-  // 3. STUDENT MUTATION (Cancel Session)
+  // 3. STUDENT MUTATION (CANCELLING A SESSION)
   const handleCancel = async (bookingId: string) => {
     const confirmCancel = window.confirm("Are you sure you want to cancel this booking?");
     if (!confirmCancel) return;
 
     const toastId = toast.loading("Cancelling booking...");
     try {
-      const res = await fetch(`${process.env.BACKEND_URL}/api/bookings/studentbookings/cancel/${bookingId}`, {
+      const res = await fetch(`${BASE_URL}/api/bookings/studentbookings/cancel/${bookingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" }
       });
       if (!res.ok) throw new Error("Cancellation failed");
       toast.success("Booking cancelled", { id: toastId });
-      fetchSessions();
+      fetchSessions(); // Refresh the list
     } catch (err) {
       toast.error("Failed to cancel", { id: toastId });
     }
@@ -91,7 +95,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
       <div className="flex flex-col items-center justify-center py-32 bg-[#050505]">
         <Loader2 className="animate-spin text-purple-600 size-12 mb-4" />
         <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">
-          Loading {role === "teacher" ? "Tutor" : "Student"} Dashboard...
+          Loading {role} Dashboard...
         </p>
       </div>
     );
@@ -100,14 +104,13 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
   return (
     <section className="mt-10">
       <Tabs defaultValue="upcoming" className="w-full">
-        {/* HEADER */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
             <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">
               {role === "teacher" ? "Session" : "My"} <span className="text-purple-600">Control</span>
             </h2>
             <p className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mt-2">
-              Viewing as {role}: {userId.slice(0, 8)}...
+              Viewing as {role}
             </p>
           </div>
           
@@ -126,7 +129,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
           </div>
         </div>
 
-        {/* CONTENT */}
         {statuses.map((status) => (
           <TabsContent key={status} value={status} className="outline-none">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -162,10 +164,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     </h3>
                   </div>
                   
-                  <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-6">
-                    {role === "teacher" ? "Student ID: " : "Booking Ref: "} {session.id.slice(-6).toUpperCase()}
-                  </p>
-
                   <div className="flex items-center gap-4 py-4 border-y border-white/5 mb-6">
                     <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 uppercase">
                       <Calendar size={14} className="text-purple-600" /> 
@@ -177,9 +175,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                     </div>
                   </div>
 
-                  {/* ACTION BUTTONS */}
                   <div className="flex gap-2">
-                    {/* BUTTONS FOR UPCOMING/CONFIRMED SESSIONS */}
                     {session.status === "CONFIRMED" && (
                       <>
                         <Button 
@@ -217,27 +213,13 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                       </>
                     )}
 
-                    {/* BUTTONS FOR COMPLETED SESSIONS (THE NEW REVIEW LOGIC) */}
-                    {session.status === "COMPLETED" && (
-                      role === "student" ? (
+                    {session.status === "COMPLETED" && role === "student" && (
                         <Button 
                           onClick={() => router.push(`/student/addreview?studentId=${session.studentId}&tutorId=${session.tutorId}&bookingId=${session.id}`)}
                           className="w-full rounded-xl bg-white text-black hover:bg-purple-600 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg"
                         >
                           <Star size={14} className="mr-2 fill-current text-yellow-500" /> Rate Experience
                         </Button>
-                      ) : (
-                        <Button disabled className="w-full rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-black uppercase text-[10px] h-12">
-                          Session Archived
-                        </Button>
-                      )
-                    )}
-
-                    {/* BUTTONS FOR CANCELLED SESSIONS */}
-                    {session.status === "CANCELLED" && (
-                      <Button disabled className="w-full rounded-xl bg-rose-500/10 text-rose-500 border border-rose-500/20 font-black uppercase text-[10px] h-12">
-                        Booking Cancelled
-                      </Button>
                     )}
                   </div>
                 </div>

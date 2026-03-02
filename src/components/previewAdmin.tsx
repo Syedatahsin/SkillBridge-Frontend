@@ -22,7 +22,7 @@ export default function AdminDashboard() {
         // Fetch all data in parallel
         const [tutorRes, studentRes, bookingRes] = await Promise.all([
           fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/alltutor?limit=10`),
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?role=STUDENT&limit=10`),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?limit=10`), // Keeping your limit=10
           fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/bookings?limit=10`)
         ]);
 
@@ -31,7 +31,17 @@ export default function AdminDashboard() {
         const bookingJson = await bookingRes.json();
         
         if (tutorJson.success) setTutors(tutorJson.data);
-        if (studentJson.success) setStudents(studentJson.data);
+        
+        // --- ADDED LOGIC HERE ---
+        if (studentJson.success) {
+          // Filter the users to only include those with the role "STUDENT"
+          const filteredStudents = studentJson.data.filter(
+            (user: any) => user.role === "STUDENT"
+          );
+          setStudents(filteredStudents);
+        }
+        // ------------------------
+
         if (bookingJson.success) setBookings(bookingJson.data);
 
       } catch (error) {
@@ -58,7 +68,6 @@ export default function AdminDashboard() {
                 <p className="text-zinc-500 font-medium italic">Showing the latest platform logs.</p>
               </div>
               
-              {/* TABS LIST - Fixed visibility for dark background */}
               <TabsList className="bg-white/5 border border-white/10 p-1.5 rounded-full h-auto flex-wrap">
                 <TabsTrigger 
                   value="teachers" 
@@ -130,7 +139,7 @@ export default function AdminDashboard() {
   );
 }
 
-// --- SUB-COMPONENTS ---
+// --- SUB-COMPONENTS REMAIN THE SAME ---
 
 function BookingCard({ booking }: { booking: any }) {
   return (

@@ -1,7 +1,7 @@
 // @/Serveraction/getallteacheraction.ts
 export async function getTutorsAction(page: number) {
   try {
-    const response = await fetch(`${process.env.BACKEND_URL}/api/tutor/tutor?page=${page}&limit=6`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/tutor?page=${page}&limit=6`, {
       cache: 'no-store'
     });
 
