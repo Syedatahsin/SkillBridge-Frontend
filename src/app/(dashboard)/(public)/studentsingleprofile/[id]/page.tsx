@@ -18,7 +18,7 @@ export default async function Page({ params }: PageProps) {
   try {
     // 2. Fetch User data with a timestamp to prevent stale cache
     const userRes = await fetch(
-      `http://127.0.0.1:5000/api/users/${id}?t=${Date.now()}`, 
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/${id}?t=${Date.now()}`, 
       {
         method: 'GET',
         cache: 'no-store', // Ensures fresh data on every request

@@ -68,9 +68,7 @@ export const ReviewSection = ({ userId }: { userId: string }) => {
           <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">
             Student <span className="text-purple-500">Feedback</span>
           </h2>
-          <a href="#" className="text-gray-500 text-[10px] font-black uppercase tracking-widest hover:text-purple-400 flex items-center gap-1 transition-colors">
-            See all <ArrowRight size={14} />
-          </a>
+         
         </div>
 
         {data.latestReviews && data.latestReviews.length > 0 ? (

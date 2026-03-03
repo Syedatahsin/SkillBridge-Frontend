@@ -21,7 +21,7 @@ const studentId = session|| null;
     // 3. Use the sanitized ID in the fetch
     // Added a cache-busting timestamp just in case of ghost 404s
     const tutorRes = await fetch(
-      `http://127.0.0.1:5000/api/tutor/public/${id}?t=${Date.now()}`, 
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/public/${id}?t=${Date.now()}`, 
       {
         method: 'GET',
         cache: 'no-store',
