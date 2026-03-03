@@ -243,6 +243,10 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
             {tutorData.availability?.length > 0 ? (
               tutorData.availability.map((slot: any) => {
                 const isUnavailable = slot.isBooked || isCurrentlyBanned;
+                
+                // DATA LOGIC: Ensure we create a clean Date object to allow browser auto-timezone conversion
+                const slotDate = new Date(slot.startTime);
+
                 return (
                   <div key={slot.id} className={cn(
                     "p-10 rounded-[3.5rem] border flex flex-col justify-between h-[300px] transition-all duration-500",
@@ -253,14 +257,16 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">{format(new Date(slot.startTime), "EEEE")}</p>
-                          <h3 className="text-3xl font-bold mt-1 tracking-tight">{format(new Date(slot.startTime), "MMM dd, yyyy")}</h3>
+                          {/* DISPLAY FIX: format(Date, string) handles timezone adjustment automatically */}
+                          <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">{format(slotDate, "EEEE")}</p>
+                          <h3 className="text-3xl font-bold mt-1 tracking-tight">{format(slotDate, "MMM dd, yyyy")}</h3>
                         </div>
                         {isUnavailable && <Lock className="size-6 text-zinc-700" />}
                       </div>
                       <div className="flex items-center gap-2 text-purple-400 font-bold text-lg">
                         <Clock className="size-5" />
-                        <span>{format(new Date(slot.startTime), "hh:mm a")}</span>
+                        {/* DISPLAY FIX: Shows correctly shifted local time */}
+                        <span>{format(slotDate, "hh:mm a")}</span>
                       </div>
                     </div>
                     <Button 
@@ -284,7 +290,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
           </div>
         </div>
 
-        {/* --- INLINE REVIEWS (HTML NEW) --- */}
+        {/* --- INLINE REVIEWS --- */}
         <div className="space-y-10 pt-20">
           <div className="flex items-center gap-5">
             <div className="h-10 w-2 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
@@ -339,7 +345,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
             </div>
           ) : (
             <div className="py-24 text-center border-2 border-dashed border-white/5 rounded-[4rem] bg-white/[0.01]">
-               <p className="text-zinc-600 text-xs font-black uppercase tracking-[0.4em]">Zero testimonials recorded</p>
+                <p className="text-zinc-600 text-xs font-black uppercase tracking-[0.4em]">Zero testimonials recorded</p>
             </div>
           )}
         </div>

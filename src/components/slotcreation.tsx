@@ -37,7 +37,7 @@ export default function SmartSlotCreator() {
   const form = useForm({
     defaultValues: { date: today, start: "09:00", end: "10:00" },
     onSubmit: async ({ value }) => {
-     
+      
   console.log("Submitting Tutor ID:", tutorId); // check your browser console!
   // ... rest of the code
       const createSlotPromise = async () => {
@@ -46,8 +46,9 @@ export default function SmartSlotCreator() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             tutorId: tutorId,
-            startTime: `${value.date}T${value.start}:00.000Z`,
-            endTime: `${value.date}T${value.end}:00.000Z`,
+            // REQUIRED TWO LINES CHANGED BELOW:
+            startTime: new Date(`${value.date}T${value.start}`).toISOString(),
+            endTime: new Date(`${value.date}T${value.end}`).toISOString(),
           }),
         });
 
