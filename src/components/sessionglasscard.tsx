@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
-  XCircle, CheckCircle2, Loader2, User, Star
+  XCircle, CheckCircle2, Loader2, User, Star, Inbox
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
@@ -22,10 +22,8 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // --- HELPER FOR THE URL ---
   const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
-  // 1. FETCH LOGIC (READING DATA)
   const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
@@ -50,7 +48,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     if (userId) fetchSessions();
   }, [fetchSessions, userId]);
 
-  // 2. TEACHER MUTATION (COMPLETING A SESSION)
   const completeForm = useForm({
     defaultValues: { bookingId: "" },
     onSubmit: async ({ value }) => {
@@ -62,14 +59,13 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
         });
         if (!res.ok) throw new Error("Update failed");
         toast.success("Session completed!", { id: toastId });
-        fetchSessions(); // Refresh the list
+        fetchSessions();
       } catch (err) {
         toast.error("Error updating status", { id: toastId });
       }
     },
   });
 
-  // 3. STUDENT MUTATION (CANCELLING A SESSION)
   const handleCancel = async (bookingId: string) => {
     const confirmCancel = window.confirm("Are you sure you want to cancel this booking?");
     if (!confirmCancel) return;
@@ -82,7 +78,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
       });
       if (!res.ok) throw new Error("Cancellation failed");
       toast.success("Booking cancelled", { id: toastId });
-      fetchSessions(); // Refresh the list
+      fetchSessions();
     } catch (err) {
       toast.error("Failed to cancel", { id: toastId });
     }
@@ -129,104 +125,116 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
           </div>
         </div>
 
-        {statuses.map((status) => (
-          <TabsContent key={status} value={status} className="outline-none">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {sessions
-                .filter((s: any) => s.status.toLowerCase() === status.toLowerCase() || (status === "upcoming" && s.status === "CONFIRMED"))
-                .map((session: any) => (
-                <div 
-                  key={session.id} 
-                  className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group"
-                >
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
-                      {session.status === "COMPLETED" ? (
-                        <CheckCircle2 className="text-emerald-500" size={20} />
-                      ) : session.status === "CANCELLED" ? (
-                        <XCircle className="text-rose-500" size={20} />
-                      ) : (
-                        <UserCheck className="text-purple-500" size={20} />
-                      )}
-                    </div>
-                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">
-                      {session.status}
-                    </span>
-                  </div>
+        {statuses.map((status) => {
+          const filteredSessions = sessions.filter((s: any) => {
+            const sStatus = s.status.toLowerCase();
+            if (status === "upcoming") return sStatus === "upcoming" || sStatus === "confirmed";
+            return sStatus === status;
+          });
 
-                  <div className="flex items-center gap-2 mb-1">
-                    <User size={14} className="text-zinc-600" />
-                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">
-                      {role === "teacher" 
-                        ? (session.student?.name || "Private Session")
-                        : (session.tutor?.user?.name || "Instructor")
-                      }
-                    </h3>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 py-4 border-y border-white/5 mb-6">
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 uppercase">
-                      <Calendar size={14} className="text-purple-600" /> 
-                      {format(new Date(session.availability.startTime), "MMM dd")}
-                    </div>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 uppercase">
-                      <Clock size={14} className="text-purple-600" /> 
-                      {format(new Date(session.availability.startTime), "p")}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    {session.status === "CONFIRMED" && (
-                      <>
-                        <Button 
-                          onClick={() => session.meetingLink && window.open(session.meetingLink, "_blank")}
-                          className="flex-1 rounded-xl bg-purple-600 hover:bg-white hover:text-black font-black uppercase text-[10px] tracking-widest h-12 transition-all"
-                        >
-                          <Video size={16} className="mr-2" /> Join
-                        </Button>
-                        
-                        {role === "teacher" ? (
-                          <form
-                            onSubmit={(e) => {
-                              e.preventDefault();
-                              completeForm.setFieldValue("bookingId", session.id);
-                              completeForm.handleSubmit();
-                            }}
-                          >
-                            <Button 
-                              type="submit"
-                              variant="outline" 
-                              className="px-4 rounded-xl border-white/10 bg-white/5 text-emerald-500 hover:bg-emerald-500/10 font-black uppercase text-[10px] h-12"
-                            >
-                              Done
-                            </Button>
-                          </form>
-                        ) : (
-                          <Button 
-                            onClick={() => handleCancel(session.id)}
-                            variant="outline" 
-                            className="px-4 rounded-xl border-white/10 bg-white/5 text-rose-500 hover:bg-rose-500/10 font-black uppercase text-[10px] h-12"
-                          >
-                            Cancel
-                          </Button>
-                        )}
-                      </>
-                    )}
-
-                    {session.status === "COMPLETED" && role === "student" && (
-                        <Button 
-                          onClick={() => router.push(`/student/addreview?studentId=${session.studentId}&tutorId=${session.tutorId}&bookingId=${session.id}`)}
-                          className="w-full rounded-xl bg-white text-black hover:bg-purple-600 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg"
-                        >
-                          <Star size={14} className="mr-2 fill-current text-yellow-500" /> Rate Experience
-                        </Button>
-                    )}
-                  </div>
+          return (
+            <TabsContent key={status} value={status} className="outline-none">
+              {filteredSessions.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[2.5rem]">
+                  <Inbox className="text-zinc-700 size-12 mb-4" />
+                  <p className="text-zinc-500 font-bold uppercase text-[10px] tracking-widest">No {status} sessions found</p>
                 </div>
-              ))}
-            </div>
-          </TabsContent>
-        ))}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredSessions.map((session: any) => (
+                    <div 
+                      key={session.id} 
+                      className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group"
+                    >
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
+                          {session.status === "COMPLETED" ? (
+                            <CheckCircle2 className="text-emerald-500" size={20} />
+                          ) : session.status === "CANCELLED" ? (
+                            <XCircle className="text-rose-500" size={20} />
+                          ) : (
+                            <UserCheck className="text-purple-500" size={20} />
+                          )}
+                        </div>
+                        <span className={`text-[9px] font-black uppercase tracking-widest ${
+                          session.status === "CANCELLED" ? "text-rose-500" : 
+                          session.status === "COMPLETED" ? "text-emerald-500" : "text-gray-600"
+                        }`}>
+                          {session.status}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mb-1">
+                        <User size={14} className="text-zinc-600" />
+                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">
+                          {role === "teacher" 
+                            ? (session.student?.name || "Private Session")
+                            : (session.tutor?.user?.name || "Instructor")
+                          }
+                        </h3>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 py-4 border-y border-white/5 mb-6">
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 uppercase">
+                          <Calendar size={14} className="text-purple-600" /> 
+                          {format(new Date(session.availability.startTime), "MMM dd")}
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300 uppercase">
+                          <Clock size={14} className="text-purple-600" /> 
+                          {format(new Date(session.availability.startTime), "p")}
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {(session.status === "CONFIRMED" || session.status === "UPCOMING") && (
+                          <>
+                            <Button 
+                              onClick={() => session.meetingLink && window.open(session.meetingLink, "_blank")}
+                              className="flex-1 rounded-xl bg-purple-600 hover:bg-white hover:text-black font-black uppercase text-[10px] tracking-widest h-12 transition-all"
+                            >
+                              <Video size={16} className="mr-2" /> Join
+                            </Button>
+                            
+                            {role === "teacher" ? (
+                              <Button 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  completeForm.setFieldValue("bookingId", session.id);
+                                  completeForm.handleSubmit();
+                                }}
+                                variant="outline" 
+                                className="px-4 rounded-xl border-white/10 bg-white/5 text-emerald-500 hover:bg-emerald-500/10 font-black uppercase text-[10px] h-12"
+                              >
+                                Done
+                              </Button>
+                            ) : (
+                              <Button 
+                                onClick={() => handleCancel(session.id)}
+                                variant="outline" 
+                                className="px-4 rounded-xl border-white/10 bg-white/5 text-rose-500 hover:bg-rose-500/10 font-black uppercase text-[10px] h-12"
+                              >
+                                Cancel
+                              </Button>
+                            )}
+                          </>
+                        )}
+
+                        {session.status === "COMPLETED" && role === "student" && (
+                            <Button 
+                              onClick={() => router.push(`/student/addreview?studentId=${session.studentId}&tutorId=${session.tutorId}&bookingId=${session.id}`)}
+                              className="w-full rounded-xl bg-white text-black hover:bg-purple-600 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg"
+                            >
+                              <Star size={14} className="mr-2 fill-current text-yellow-500" /> Rate Experience
+                            </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </section>
   );

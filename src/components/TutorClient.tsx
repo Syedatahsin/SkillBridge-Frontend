@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   ShieldAlert, ShieldCheck, Loader2, CheckCircle2, 
-  Star, Calendar, Clock, Lock, MessageSquare, UserCircle 
+  Star, Calendar, Clock, Lock, MessageSquare, UserCircle, Ban 
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -34,14 +34,13 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
   const [localStatus, setLocalStatus] = useState(tutorData.user?.status || "ACTIVE");
   const [isFeatured, setIsFeatured] = useState(tutorData.isFeatured || false);
 
-  // Fetch Reviews manually inside this component
+  // Fetch Reviews manually
   useEffect(() => {
     const fetchAllReviews = async () => {
       try {
         setLoadingReviews(true);
         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews/${tutorData.id}`);
         const data = await res.json();
-        // Handle both cases: if it's an array or if it's wrapped in an object
         setReviews(Array.isArray(data) ? data : data.reviews || []);
       } catch (err) {
         console.error("Failed to load reviews");
@@ -242,10 +241,12 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {tutorData.availability?.length > 0 ? (
               tutorData.availability.map((slot: any) => {
-                const isUnavailable = slot.isBooked || isCurrentlyBanned;
-                
-                // DATA LOGIC: Ensure we create a clean Date object to allow browser auto-timezone conversion
                 const slotDate = new Date(slot.startTime);
+                const now = new Date();
+                
+                // Logic: Slot is expired if older than current time
+                const isExpired = slotDate < now;
+                const isUnavailable = slot.isBooked || isCurrentlyBanned || isExpired;
 
                 return (
                   <div key={slot.id} className={cn(
@@ -257,7 +258,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                     <div className="space-y-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          {/* DISPLAY FIX: format(Date, string) handles timezone adjustment automatically */}
                           <p className="text-xs font-black text-zinc-500 uppercase tracking-widest">{format(slotDate, "EEEE")}</p>
                           <h3 className="text-3xl font-bold mt-1 tracking-tight">{format(slotDate, "MMM dd, yyyy")}</h3>
                         </div>
@@ -265,7 +265,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                       </div>
                       <div className="flex items-center gap-2 text-purple-400 font-bold text-lg">
                         <Clock className="size-5" />
-                        {/* DISPLAY FIX: Shows correctly shifted local time */}
                         <span>{format(slotDate, "hh:mm a")}</span>
                       </div>
                     </div>
@@ -277,7 +276,17 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                         isUnavailable ? "bg-zinc-800 text-zinc-600" : "bg-white text-black hover:bg-purple-600 hover:text-white shadow-2xl active:scale-95"
                       )}
                     >
-                      {loadingSlotId === slot.id ? <Loader2 className="animate-spin size-5" /> : isCurrentlyBanned ? "Suspended" : slot.isBooked ? "Booked" : "Reserve Spot"}
+                      {loadingSlotId === slot.id ? (
+                        <Loader2 className="animate-spin size-5" />
+                      ) : isCurrentlyBanned ? (
+                        "Suspended"
+                      ) : isExpired ? (
+                        "Expired"
+                      ) : slot.isBooked ? (
+                        "Booked"
+                      ) : (
+                        "Reserve Spot"
+                      )}
                     </Button>
                   </div>
                 );
@@ -336,9 +345,9 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                     </p>
                   </div>
                   <div className="mt-8 pt-6 border-t border-white/5">
-                     <div className="flex items-center gap-2 text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+                      <div className="flex items-center gap-2 text-[10px] font-black text-zinc-600 uppercase tracking-widest">
                         <MessageSquare size={12} className="text-purple-500" /> Verified Booking
-                     </div>
+                      </div>
                   </div>
                 </div>
               ))}

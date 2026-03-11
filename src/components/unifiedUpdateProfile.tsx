@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { authClient } from "@/lib/auth-client";
 import { Loader2, Save, User as UserIcon, DollarSign, BookOpen, Settings, BadgeCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ExtendedUser {
   id: string;
@@ -12,6 +13,7 @@ interface ExtendedUser {
 }
 
 export default function GlobalUpdateProfile() {
+  const router = useRouter();
   const { data: session, isPending: authLoading } = authClient.useSession();
   const user = session?.user as ExtendedUser | undefined;
 
@@ -24,7 +26,6 @@ export default function GlobalUpdateProfile() {
   const [price, setPrice] = useState(0);
   const [exp, setExp] = useState(0);
 
-  // Fallback URL if process.env is not defined
   const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
   
   useEffect(() => {
@@ -39,8 +40,6 @@ export default function GlobalUpdateProfile() {
   const fetchTutorData = async (uid: string) => {
     try {
       const idRes = await fetch(`${API_BASE}/api/tutor/tutorid/${uid}`);
-      
-      // Safety: If the API returns 404/Error, we just exit silently
       if (!idRes.ok) return;
 
       const idData = await idRes.json();
@@ -58,7 +57,6 @@ export default function GlobalUpdateProfile() {
         setExp(profileData.experience || 0);
       }
     } catch (err) {
-      // Logic: If there is no profile, we log it and do nothing. No error shown to user.
       console.log("No existing tutor profile found for this account.");
     }
   };
@@ -69,7 +67,7 @@ export default function GlobalUpdateProfile() {
     setMessage({ type: "", text: "" });
 
     try {
-      // 1. Update User Name (Always happens)
+      // 1. Update User Name in your Database
       const userRes = await fetch(`${API_BASE}/api/users/update/${user?.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -78,7 +76,17 @@ export default function GlobalUpdateProfile() {
 
       if (!userRes.ok) throw new Error("Failed to update account name.");
 
-      // 2. Update Tutor Profile (Only if a tutorId was successfully fetched)
+      // 2. FORCE REFRESH SESSION (This fixes the name not changing immediately)
+      await authClient.getSession({
+        fetchOptions: {
+          cache: "no-store", 
+        },
+      });
+      
+      // Syncs Server Components like Navbars
+      router.refresh(); 
+
+      // 3. Update Tutor Profile if applicable
       if (user?.role === "TUTOR" && tutorId) {
         const tutorRes = await fetch(`${API_BASE}/api/tutor/update/${tutorId}`, {
           method: "PATCH",

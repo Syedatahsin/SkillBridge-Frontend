@@ -1,18 +1,17 @@
 "use client";
 
 import React from "react";
-import { authClient } from "@/lib/auth-client"; // Adjust path to your auth client
-import { Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client"; 
+import { Loader2, Ban } from "lucide-react";
 import Footer from "@/components/Footer";
 import StudentWelcome from "@/components/StudentgreetingSection";
 import SessionManagement from "@/components/sessionglasscard";
 import CategorySection from "@/components/CategoriesCard";
+import { cn } from "@/lib/utils";
 
 const StudentDashboardPage = () => {
-  // 1. Get the session at the page level
   const { data: session, isPending } = authClient.useSession();
 
-  // 2. Handle the loading state while session is being retrieved
   if (isPending) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -21,7 +20,6 @@ const StudentDashboardPage = () => {
     );
   }
 
-  // 3. Optional: Handle cases where there is no session (user logged out)
   if (!session) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -30,19 +28,37 @@ const StudentDashboardPage = () => {
     );
   }
 
+  // Use type assertion (any) to bypass the TS error while checking the status
+  const userStatus = (session.user as any).status;
+  const isBanned = userStatus === "BANNED";
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-5 space-y-10">
-      {/* 4. Pass the session/ID to the components */}
+    <div className="min-h-screen bg-gray-900 text-white p-5 space-y-10 relative">
       
-      {/* StudentWelcome will use the session internally or you can pass name if needed */}
-      <StudentWelcome />
+      {/* 1. LOCK MESSAGE: Shows only if banned */}
+      {isBanned && (
+        <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl flex items-center gap-3 mb-5">
+           <Ban className="text-red-500 size-5" />
+           <p className="text-sm font-bold uppercase tracking-tight text-red-500">
+             Your account is suspended. All features are currently disabled.
+           </p>
+        </div>
+      )}
 
-      {/* Pass the actual user ID from the session to SessionManagement */}
-      <SessionManagement role="student" userId={session.user.id} />
+      {/* 2. DASHBOARD CONTENT */}
+      {/* If banned, we add pointer-events-none so NO buttons work, and grayscale to look "off" */}
+      <div className={cn(
+        "space-y-10 transition-all duration-300",
+        isBanned && "pointer-events-none select-none grayscale opacity-40"
+      )}>
+        <StudentWelcome />
 
-      <CategorySection role="student" /> 
+        <SessionManagement role="student" userId={session.user.id} />
 
-      <Footer />
+        <CategorySection role="student" /> 
+
+        <Footer />
+      </div>
     </div>
   );
 };
