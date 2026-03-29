@@ -114,7 +114,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
       return router.push("/login");
     }
     setLoadingSlotId(availabilityId);
-    const toastId = toast.loading("Processing booking...");
+    const toastId = toast.loading("Processing booking and payment...");
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/`, {
         method: "POST",
@@ -125,13 +125,23 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
           availabilityId: availabilityId
         }),
       });
+      
+      const result = await response.json();
+
       if (!response.ok) {
-        const result = await response.json();
         throw new Error(result.message || "Booking failed");
       }
-      toast.success("Booking confirmed!", { id: toastId });
-      router.refresh(); 
-      router.push("/student");
+
+      // If backend returns a Stripe Checkout URL, redirect the user
+      if (result.url) {
+        toast.success("Redirecting to Stripe...", { id: toastId });
+        window.location.href = result.url;
+      } else {
+        // Fallback for non-payment bookings
+        toast.success("Booking confirmed!", { id: toastId });
+        router.refresh(); 
+        router.push("/student");
+      }
     } catch (err: any) {
       toast.error(err.message, { id: toastId });
     } finally {
