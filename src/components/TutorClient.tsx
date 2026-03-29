@@ -122,8 +122,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
         body: JSON.stringify({
           studentId: initialSession.user.id,
           tutorId: tutorData.id,
-          availabilityId: availabilityId,
-          meetingLink: "https://meet.google.com/new",
+          availabilityId: availabilityId
         }),
       });
       if (!response.ok) {
