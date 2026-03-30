@@ -4,13 +4,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
-  XCircle, CheckCircle2, Loader2, User, Star, Inbox
+  CheckCircle2, Loader2, User, Star, Inbox, AlertCircle, Mail
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SessionProps {
   role: "teacher" | "student";
@@ -66,25 +67,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     },
   });
 
-  const handleCancel = async (bookingId: string) => {
-    const confirmCancel = window.confirm("Are you sure you want to cancel this booking?");
-    if (!confirmCancel) return;
-
-    const toastId = toast.loading("Cancelling booking...");
-    try {
-      const res = await fetch(`${BASE_URL}/api/bookings/studentbookings/cancel/${bookingId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" }
-      });
-      if (!res.ok) throw new Error("Cancellation failed");
-      toast.success("Booking cancelled", { id: toastId });
-      fetchSessions();
-    } catch (err) {
-      toast.error("Failed to cancel", { id: toastId });
-    }
-  };
-
-  const statuses = ["upcoming", "completed", "cancelled"];
+  const statuses = ["upcoming", "completed"];
 
   if (loading) {
     return (
@@ -133,7 +116,19 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
           });
 
           return (
-            <TabsContent key={status} value={status} className="outline-none">
+            <TabsContent key={status} value={status} className="outline-none space-y-6">
+              
+              {/* STUDENT SPECIFIC NOTE FOR UPCOMING TAB */}
+              {status === "upcoming" && role === "student" && filteredSessions.length > 0 && (
+                <Alert className="bg-zinc-900/50 border-white/10 rounded-[2rem] p-6 mb-8">
+                  <AlertCircle className="h-5 w-5 text-purple-500" />
+                  <AlertTitle className="text-white font-black text-xs uppercase tracking-widest ml-2">Important Notice</AlertTitle>
+                  <AlertDescription className="text-zinc-500 text-xs mt-1 leading-relaxed">
+                    Bookings are final. <span className="text-white">Refunds or cancellations are not supported.</span> If you need to adjust your time, please contact your instructor via email to discuss rescheduling.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {filteredSessions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[2.5rem]">
                   <Inbox className="text-zinc-700 size-12 mb-4" />
@@ -150,14 +145,11 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                         <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
                           {session.status === "COMPLETED" ? (
                             <CheckCircle2 className="text-emerald-500" size={20} />
-                          ) : session.status === "CANCELLED" ? (
-                            <XCircle className="text-rose-500" size={20} />
                           ) : (
                             <UserCheck className="text-purple-500" size={20} />
                           )}
                         </div>
                         <span className={`text-[9px] font-black uppercase tracking-widest ${
-                          session.status === "CANCELLED" ? "text-rose-500" : 
                           session.status === "COMPLETED" ? "text-emerald-500" : "text-gray-600"
                         }`}>
                           {session.status}
@@ -185,6 +177,14 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                         </div>
                       </div>
 
+                      {/* TEACHER EMAIL FOR RESCHEDULING (STUDENT VIEW ONLY) */}
+                      {role === "student" && status === "upcoming" && session.tutor?.user?.email && (
+                        <div className="mb-6 flex items-center gap-2 p-3 bg-white/5 rounded-xl border border-white/5">
+                          <Mail size={12} className="text-purple-400" />
+                          <span className="text-[10px] text-zinc-400 truncate">{session.tutor.user.email}</span>
+                        </div>
+                      )}
+
                       <div className="flex gap-2">
                         {(session.status === "CONFIRMED" || session.status === "UPCOMING") && (
                           <>
@@ -195,7 +195,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                               <Video size={16} className="mr-2" /> Join
                             </Button>
                             
-                            {role === "teacher" ? (
+                            {role === "teacher" && (
                               <Button 
                                 onClick={(e) => {
                                   e.preventDefault();
@@ -206,14 +206,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                                 className="px-4 rounded-xl border-white/10 bg-white/5 text-emerald-500 hover:bg-emerald-500/10 font-black uppercase text-[10px] h-12"
                               >
                                 Done
-                              </Button>
-                            ) : (
-                              <Button 
-                                onClick={() => handleCancel(session.id)}
-                                variant="outline" 
-                                className="px-4 rounded-xl border-white/10 bg-white/5 text-rose-500 hover:bg-rose-500/10 font-black uppercase text-[10px] h-12"
-                              >
-                                Cancel
                               </Button>
                             )}
                           </>
