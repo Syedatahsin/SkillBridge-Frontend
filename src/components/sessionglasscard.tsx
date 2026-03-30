@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
-  CheckCircle2, Loader2, User, Star, Inbox, AlertCircle, Mail
+  CheckCircle2, Loader2, User, Star, Inbox, AlertCircle, Mail,
+  DollarSign // Added for the amount display
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
@@ -21,6 +22,8 @@ interface SessionProps {
 const SessionManagement = ({ role, userId }: SessionProps) => {
   const router = useRouter();
   const [sessions, setSessions] = useState<any[]>([]);
+  // 1. ADD STATE FOR TOTAL EARNINGS
+  const [totalEarnings, setTotalEarnings] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
@@ -36,7 +39,15 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
       if (!response.ok) throw new Error("Failed to load sessions");
       
       const data = await response.json();
-      setSessions(data);
+      
+      // 2. UPDATE FETCH LOGIC TO HANDLE THE OBJECT RESPONSE
+      if (role === "teacher" && data.bookings) {
+        setSessions(data.bookings);
+        setTotalEarnings(data.totalEarnings || 0);
+      } else {
+        // If student endpoint still returns a plain array
+        setSessions(Array.isArray(data) ? data : data.bookings || []);
+      }
     } catch (err) {
       console.error("Sync Error:", err);
       toast.error("Could not sync schedule");
@@ -82,6 +93,23 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
 
   return (
     <section className="mt-10">
+      {/* 3. ADD THE TOTAL AMOUNT GLASS CARD FOR TEACHERS */}
+      {role === "teacher" && (
+        <div className="mb-10 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-purple-600/10 border border-purple-500/20 rounded-[2rem] p-8 relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
+              <DollarSign size={120} className="text-purple-500 rotate-12" />
+            </div>
+            <p className="text-purple-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
+              Total Revenue
+            </p>
+            <h3 className="text-5xl font-black text-white italic tracking-tighter">
+              ${totalEarnings.toFixed(2)}
+            </h3>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="upcoming" className="w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
@@ -118,7 +146,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
           return (
             <TabsContent key={status} value={status} className="outline-none space-y-6">
               
-              {/* STUDENT SPECIFIC NOTE FOR UPCOMING TAB */}
               {status === "upcoming" && role === "student" && filteredSessions.length > 0 && (
                 <Alert className="bg-zinc-900/50 border-white/10 rounded-[2rem] p-6 mb-8">
                   <AlertCircle className="h-5 w-5 text-purple-500" />
@@ -177,7 +204,6 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                         </div>
                       </div>
 
-                      {/* TEACHER EMAIL FOR RESCHEDULING (STUDENT VIEW ONLY) */}
                       {role === "student" && status === "upcoming" && session.tutor?.user?.email && (
                         <div className="mb-6 flex items-center gap-2 p-3 bg-white/5 rounded-xl border border-white/5">
                           <Mail size={12} className="text-purple-400" />
