@@ -60,7 +60,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
   const isAdmin = initialSession?.user?.role === "ADMIN";
   const isCurrentlyBanned = localStatus === "BANNED";
 
-  // --- ADMIN ACTION: FEATURE TOGGLE ---
+  // --- ADMIN ACTIONS (Keep same logic) ---
   const handleToggleFeatured = async () => {
     setIsUpdatingFeature(true);
     const nextFeatureValue = !isFeatured;
@@ -82,7 +82,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
     }
   };
 
-  // --- ADMIN ACTION: BAN/UNBAN ---
   const handleToggleBan = async () => {
     const targetUserId = tutorData.user?.id; 
     const nextStatusString = isCurrentlyBanned ? "ACTIVE" : "BANNED";
@@ -132,12 +131,10 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
         throw new Error(result.message || "Booking failed");
       }
 
-      // If backend returns a Stripe Checkout URL, redirect the user
       if (result.url) {
         toast.success("Redirecting to Stripe...", { id: toastId });
         window.location.href = result.url;
       } else {
-        // Fallback for non-payment bookings
         toast.success("Booking confirmed!", { id: toastId });
         router.refresh(); 
         router.push("/student");
@@ -252,8 +249,6 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
               tutorData.availability.map((slot: any) => {
                 const slotDate = new Date(slot.startTime);
                 const now = new Date();
-                
-                // Logic: Slot is expired if older than current time
                 const isExpired = slotDate < now;
                 const isUnavailable = slot.isBooked || isCurrentlyBanned || isExpired;
 
@@ -277,12 +272,16 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
                         <span>{format(slotDate, "hh:mm a")}</span>
                       </div>
                     </div>
+
+                    {/* UPDATED BUTTON WITH disabled={isUnavailable} */}
                     <Button 
                       onClick={() => handleBooking(slot.id)}
                       disabled={isUnavailable || !!loadingSlotId}
                       className={cn(
                         "w-full h-16 rounded-[1.5rem] font-black uppercase text-xs tracking-[0.2em] transition-all",
-                        isUnavailable ? "bg-zinc-800 text-zinc-600" : "bg-white text-black hover:bg-purple-600 hover:text-white shadow-2xl active:scale-95"
+                        isUnavailable 
+                          ? "bg-zinc-800 text-zinc-600 opacity-50 cursor-not-allowed" 
+                          : "bg-white text-black hover:bg-purple-600 hover:text-white shadow-2xl active:scale-95"
                       )}
                     >
                       {loadingSlotId === slot.id ? (
@@ -308,7 +307,7 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
           </div>
         </div>
 
-        {/* --- INLINE REVIEWS --- */}
+        {/* --- INLINE REVIEWS (Logic Unchanged) --- */}
         <div className="space-y-10 pt-20">
           <div className="flex items-center gap-5">
             <div className="h-10 w-2 bg-indigo-600 rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]" />
