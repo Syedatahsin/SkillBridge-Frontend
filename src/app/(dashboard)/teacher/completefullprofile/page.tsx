@@ -8,8 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Briefcase, DollarSign, BookOpen, Check, UserCircle } from "lucide-react";
-import { authClient } from "@/lib/auth-client"; // Import your Better Auth client
+import { Loader2, Briefcase, DollarSign, BookOpen, Check, UserCircle, Landmark } from "lucide-react";
+import { authClient } from "@/lib/auth-client"; 
 
 interface Category {
   id: string;
@@ -24,7 +24,6 @@ export default function CompleteFullProfilePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [fetchingCats, setFetchingCats] = useState(true);
 
-  // 1. Fetch Categories for the selection list
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -46,9 +45,10 @@ export default function CompleteFullProfilePage() {
       experience: 0,
       pricePerHour: 0,
       categoryIds: [] as string[],
+      // 1. ADDED DEFAULT VALUE
+      bankAccountNumber: "", 
     },
     onSubmit: async ({ value }) => {
-      // Logic Check: Ensure we have a user session
       if (!session?.user?.id) {
         toast.error("You must be logged in to create a profile.");
         return;
@@ -65,11 +65,13 @@ export default function CompleteFullProfilePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: session.user.id, // Fetching the ID directly from the session
+            userId: session.user.id,
             bio: value.bio,
             experience: Number(value.experience),
             pricePerHour: parseFloat(value.pricePerHour.toString()),
             categoryIds: value.categoryIds,
+            // 2. ADDED TO PAYLOAD
+            bankAccountNumber: value.bankAccountNumber, 
           }),
         });
 
@@ -88,7 +90,6 @@ export default function CompleteFullProfilePage() {
     },
   });
 
-  // Handle Loading State for Session
   if (sessionLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -119,7 +120,6 @@ export default function CompleteFullProfilePage() {
         <CardContent className="p-8">
           <form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }} className="space-y-8">
             
-            {/* Biography */}
             <form.Field name="bio">
               {(field) => (
                 <div className="space-y-2">
@@ -136,7 +136,6 @@ export default function CompleteFullProfilePage() {
             </form.Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Experience (Int) */}
               <form.Field name="experience">
                 {(field) => (
                   <div className="space-y-2">
@@ -154,7 +153,6 @@ export default function CompleteFullProfilePage() {
                 )}
               </form.Field>
 
-              {/* Price (Float) */}
               <form.Field name="pricePerHour">
                 {(field) => (
                   <div className="space-y-2">
@@ -163,7 +161,6 @@ export default function CompleteFullProfilePage() {
                     </label>
                     <Input
                       type="number"
-                      step="0.01"
                       className="bg-white/5 border-white/10 text-white h-14 rounded-2xl"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(parseFloat(e.target.value))}
@@ -174,7 +171,24 @@ export default function CompleteFullProfilePage() {
               </form.Field>
             </div>
 
-            {/* Category Selection Mapping */}
+            {/* 3. ADDED BANK ACCOUNT NUMBER FIELD */}
+            <form.Field name="bankAccountNumber">
+              {(field) => (
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Landmark size={14} className="text-purple-500" /> Bank Account Number (for Payouts)
+                  </label>
+                  <Input
+                    placeholder="Enter your account number"
+                    className="bg-white/5 border-white/10 text-white h-14 rounded-2xl focus:border-purple-500"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
+            </form.Field>
+
             <form.Field name="categoryIds">
               {(field) => (
                 <div className="space-y-4">

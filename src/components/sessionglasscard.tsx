@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
   CheckCircle2, Loader2, User, Star, Inbox, AlertCircle, Mail,
-  DollarSign // Added for the amount display
+  DollarSign, Landmark 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
@@ -22,7 +22,6 @@ interface SessionProps {
 const SessionManagement = ({ role, userId }: SessionProps) => {
   const router = useRouter();
   const [sessions, setSessions] = useState<any[]>([]);
-  // 1. ADD STATE FOR TOTAL EARNINGS
   const [totalEarnings, setTotalEarnings] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
@@ -40,12 +39,12 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
       
       const data = await response.json();
       
-      // 2. UPDATE FETCH LOGIC TO HANDLE THE OBJECT RESPONSE
+      // Update logic to handle the Object response for teachers
       if (role === "teacher" && data.bookings) {
         setSessions(data.bookings);
         setTotalEarnings(data.totalEarnings || 0);
       } else {
-        // If student endpoint still returns a plain array
+        // Fallback for students or plain array responses
         setSessions(Array.isArray(data) ? data : data.bookings || []);
       }
     } catch (err) {
@@ -93,19 +92,31 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
 
   return (
     <section className="mt-10">
-      {/* 3. ADD THE TOTAL AMOUNT GLASS CARD FOR TEACHERS */}
+      {/* Teacher Revenue Card with Professional Payout Message */}
       {role === "teacher" && (
         <div className="mb-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-purple-600/10 border border-purple-500/20 rounded-[2rem] p-8 relative overflow-hidden group">
+          <div className="bg-purple-600/10 border border-purple-500/20 rounded-[2.5rem] p-8 relative overflow-hidden group col-span-1 md:col-span-2">
             <div className="absolute -right-4 -top-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <DollarSign size={120} className="text-purple-500 rotate-12" />
+              <DollarSign size={160} className="text-purple-500 rotate-12" />
             </div>
-            <p className="text-purple-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
-              Total Revenue
-            </p>
-            <h3 className="text-5xl font-black text-white italic tracking-tighter">
-              ${totalEarnings.toFixed(2)}
-            </h3>
+            
+            <div className="relative z-10">
+              <p className="text-purple-400 font-black text-[10px] uppercase tracking-[0.2em] mb-2">
+                Total Revenue
+              </p>
+              <h3 className="text-6xl font-black text-white italic tracking-tighter mb-6">
+                ${totalEarnings.toFixed(2)}
+              </h3>
+              
+              {/* Option 1 Message */}
+              <div className="flex items-start gap-3 py-3 px-5 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl w-fit">
+                <Landmark size={16} className="text-emerald-500 mt-0.5" />
+                <p className="text-[10px] font-bold text-emerald-500/90 uppercase tracking-widest leading-relaxed">
+                  Payouts are processed monthly and will be transferred <br/> 
+                  directly to your registered bank account.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -151,7 +162,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                   <AlertCircle className="h-5 w-5 text-purple-500" />
                   <AlertTitle className="text-white font-black text-xs uppercase tracking-widest ml-2">Important Notice</AlertTitle>
                   <AlertDescription className="text-zinc-500 text-xs mt-1 leading-relaxed">
-                    Bookings are final. <span className="text-white">Refunds or cancellations are not supported.</span> If you need to adjust your time, please contact your instructor via email to discuss rescheduling.
+                    Bookings are final. <span className="text-white">Refunds or cancellations are not supported.</span> If you need to adjust your time, please contact your instructor via email.
                   </AlertDescription>
                 </Alert>
               )}
