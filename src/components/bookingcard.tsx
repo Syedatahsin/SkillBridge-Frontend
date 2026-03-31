@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, MessageSquare, Clock } from "lucide-react";
+import { CheckCircle, XCircle, MessageSquare, Clock, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface BookingCardProps {
   booking: any;
@@ -16,7 +17,6 @@ export default function BookingCard({ booking, userRole }: BookingCardProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Define status colors manually without the cn helper
   const getStatusStyles = (status: string) => {
     switch (status) {
       case "CONFIRMED":
@@ -51,8 +51,16 @@ export default function BookingCard({ booking, userRole }: BookingCardProps) {
   };
 
   return (
-    <div className="bg-[#0A0A0A] border border-white/10 p-6 rounded-[2rem] space-y-5 hover:border-white/20 transition-all">
-      <div className="flex justify-between items-start">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, borderColor: "rgba(255,255,255,0.2)" }}
+      className="bg-[#0A0A0A] border border-white/10 p-6 rounded-[2rem] space-y-5 transition-colors relative overflow-hidden group"
+    >
+      {/* Background subtle glow on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 via-transparent to-transparent group-hover:from-purple-500/[0.03] transition-colors pointer-events-none" />
+
+      <div className="flex justify-between items-start relative z-10">
         <div className="space-y-1">
           <Badge className={`rounded-lg px-3 py-1 font-bold text-[10px] uppercase tracking-wider ${getStatusStyles(booking.status)}`}>
             {booking.status}
@@ -68,51 +76,64 @@ export default function BookingCard({ booking, userRole }: BookingCardProps) {
         </div>
       </div>
 
-      <div>
-        <h4 className="font-bold text-xl tracking-tight text-white">
+      <div className="relative z-10">
+        <h4 className="font-black text-xl tracking-tight text-white uppercase italic">
           {userRole === "STUDENT" ? "Tutor Session" : "Student Booking"}
         </h4>
-        <p className="text-sm text-gray-400 mt-1">
+        <p className="text-sm text-gray-400 mt-1 font-medium">
           {userRole === "STUDENT" 
             ? `Mentor: ${booking.tutor?.user?.name || 'Tutor'}` 
             : `Learner: ${booking.student?.name || 'Student'}`}
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-3 pt-4 border-t border-white/5">
-        {/* TEACHER ACTIONS: Only PENDING can be confirmed */}
-        {userRole === "TUTOR" && booking.status === "PENDING" && (
-          <Button 
-            disabled={loading}
-            onClick={() => updateStatus("CONFIRMED")}
-            className="bg-white text-black hover:bg-green-500 hover:text-white rounded-xl font-bold transition-colors"
-          >
-            <CheckCircle className="mr-2 size-4" /> Confirm Booking
-          </Button>
-        )}
+      <div className="flex flex-wrap gap-3 pt-4 border-t border-white/5 relative z-10">
+        <AnimatePresence mode="wait">
+          {/* TEACHER ACTIONS */}
+          {userRole === "TUTOR" && booking.status === "PENDING" && (
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button 
+                disabled={loading}
+                onClick={() => updateStatus("CONFIRMED")}
+                className="bg-white text-black hover:bg-green-500 hover:text-white rounded-xl font-black uppercase text-[10px] tracking-widest transition-colors h-11"
+              >
+                {loading ? <Loader2 className="animate-spin size-4" /> : <><CheckCircle className="mr-2 size-4" /> Confirm Booking</>}
+              </Button>
+            </motion.div>
+          )}
 
-        {/* STUDENT ACTIONS: Can cancel as long as it's not already finished or canceled */}
-        {userRole === "STUDENT" && !["CANCELED", "COMPLETED"].includes(booking.status) && (
-          <Button 
-            variant="outline"
-            disabled={loading}
-            onClick={() => updateStatus("CANCELED")}
-            className="border-white/10 text-white hover:bg-red-500/10 hover:text-red-500 rounded-xl"
-          >
-            <XCircle className="mr-2 size-4" /> Cancel Session
-          </Button>
-        )}
+          {/* STUDENT ACTIONS */}
+          {userRole === "STUDENT" && !["CANCELED", "COMPLETED"].includes(booking.status) && (
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button 
+                variant="outline"
+                disabled={loading}
+                onClick={() => updateStatus("CANCELED")}
+                className="border-white/10 text-white hover:bg-red-500/10 hover:text-red-500 rounded-xl font-black uppercase text-[10px] tracking-widest h-11"
+              >
+                {loading ? <Loader2 className="animate-spin size-4" /> : <><XCircle className="mr-2 size-4" /> Cancel Session</>}
+              </Button>
+            </motion.div>
+          )}
 
-        {/* REVIEW BUTTON: Appears when session is COMPLETED */}
-        {userRole === "STUDENT" && booking.status === "COMPLETED" && (
-          <Button 
-            onClick={() => router.push(`/review-slot?tutorId=${booking.tutorId}&bookingId=${booking.id}`)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20"
-          >
-            <MessageSquare className="mr-2 size-4" /> Share Feedback
-          </Button>
-        )}
+          {/* REVIEW BUTTON */}
+          {userRole === "STUDENT" && booking.status === "COMPLETED" && (
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }} 
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.02 }} 
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button 
+                onClick={() => router.push(`/review-slot?tutorId=${booking.tutorId}&bookingId=${booking.id}`)}
+                className="bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-purple-500/20 h-11"
+              >
+                <MessageSquare className="mr-2 size-4" /> Share Feedback
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </div>
+    </motion.div>
   );
 }
