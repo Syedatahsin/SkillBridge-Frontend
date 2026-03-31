@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Loader2, Briefcase, DollarSign, BookOpen, Check, UserCircle, Landmark } from "lucide-react";
+import { Loader2, Briefcase, DollarSign, BookOpen, Check, UserCircle, Landmark, AlertCircle } from "lucide-react";
 import { authClient } from "@/lib/auth-client"; 
 
 interface Category {
@@ -45,7 +45,6 @@ export default function CompleteFullProfilePage() {
       experience: 0,
       pricePerHour: 0,
       categoryIds: [] as string[],
-      // 1. ADDED DEFAULT VALUE
       bankAccountNumber: "", 
     },
     onSubmit: async ({ value }) => {
@@ -70,7 +69,6 @@ export default function CompleteFullProfilePage() {
             experience: Number(value.experience),
             pricePerHour: parseFloat(value.pricePerHour.toString()),
             categoryIds: value.categoryIds,
-            // 2. ADDED TO PAYLOAD
             bankAccountNumber: value.bankAccountNumber, 
           }),
         });
@@ -171,20 +169,26 @@ export default function CompleteFullProfilePage() {
               </form.Field>
             </div>
 
-            {/* 3. ADDED BANK ACCOUNT NUMBER FIELD */}
+            {/* BANK ACCOUNT NUMBER FIELD WITH REASSURANCE */}
             <form.Field name="bankAccountNumber">
               {(field) => (
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Landmark size={14} className="text-purple-500" /> Bank Account Number (for Payouts)
+                    <Landmark size={14} className="text-purple-500" /> Payout Account Number
                   </label>
                   <Input
-                    placeholder="Enter your account number"
+                    placeholder="Ex: 0123456789 (Cannot be changed later)"
                     className="bg-white/5 border-white/10 text-white h-14 rounded-2xl focus:border-purple-500"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     required
                   />
+                  <div className="flex items-start gap-2 mt-2 px-2">
+                    <AlertCircle size={12} className="text-amber-500 mt-0.5" />
+                    <p className="text-[9px] font-bold text-amber-500/80 uppercase tracking-widest leading-relaxed">
+                      Please double-check. For security, you cannot modify <br/> this number once your profile is forged.
+                    </p>
+                  </div>
                 </div>
               )}
             </form.Field>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react"; // Added useEffect
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
@@ -25,9 +25,9 @@ import { Input } from "@/components/ui/input";
 
 export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
-  const { data: session } = authClient.useSession(); // Check current session status
+  const { data: session } = authClient.useSession();
 
-  // --- NEW LOGIC: AUTO-REDIRECT IF ALREADY LOGGED IN ---
+  // AUTO-REDIRECT IF ALREADY LOGGED IN
   useEffect(() => {
     if (session?.user) {
       const role = (session.user as any).role;
@@ -36,7 +36,6 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
       else if (role === "ADMIN") router.push("/admin");
     }
   }, [session, router]);
-  // -----------------------------------------------------
 
   const form = useForm({
     defaultValues: {
@@ -52,30 +51,22 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           password: value.password,
         });
 
-        // Handle auth errors
         if (res?.error) {
           const errorMessage = res.error.message || "Invalid email or password";
           toast.error(errorMessage, { id: toastId });
           return;
         }
 
-        // Success
         toast.success("Login successful!", { id: toastId });
 
-        // Access custom field 'role' via type casting to bypass the TS error
         const user = res?.data?.user as any;
         const role = user?.role;
 
-        // Role-based redirection
-        if (role === "STUDENT") {
-          router.push("/student");
-        } else if (role === "TUTOR") {
-          router.push("/teacher");
-        } else if (role === "ADMIN") {
-          router.push("/admin");
-        } else {
-          router.push("/");
-        }
+        if (role === "STUDENT") router.push("/student");
+        else if (role === "TUTOR") router.push("/teacher");
+        else if (role === "ADMIN") router.push("/admin");
+        else router.push("/");
+        
       } catch (err) {
         toast.error("Connection error. Please try again.", {
           id: toastId,
@@ -104,8 +95,18 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
           }}
         >
           <FieldGroup className="space-y-4">
+            {/* EMAIL FIELD WITH REGEX */}
             <form.Field
               name="email"
+              validators={{
+                onChange: ({ value }) => {
+                  if (!value) return "Email is required";
+                  // Standard Email Regex
+                  const emailRegex = /^\S+@\S+\.\S+$/;
+                  if (!emailRegex.test(value)) return "Invalid email format";
+                  return undefined;
+                },
+              }}
               children={(field) => (
                 <Field>
                   <FieldLabel 
@@ -119,14 +120,29 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
                     type="email"
                     className="bg-white/5 border-white/10 focus:border-purple-500 h-12 text-white"
                     value={field.state.value}
+                    onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <em className="text-[10px] text-red-500 uppercase font-bold mt-1 block">
+                      {field.state.meta.errors.join(", ")}
+                    </em>
+                  )}
                 </Field>
               )}
             />
 
+            {/* PASSWORD FIELD WITH REGEX */}
             <form.Field
               name="password"
+              validators={{
+                onChange: ({ value }) => {
+                  if (!value) return "Password is required";
+                  // Regex for minimum 6 characters
+                  if (value.length < 6) return "Password must be at least 6 characters";
+                  return undefined;
+                },
+              }}
               children={(field) => (
                 <Field>
                   <FieldLabel 
@@ -140,8 +156,14 @@ export function LoginForm({ ...props }: React.ComponentProps<typeof Card>) {
                     type="password"
                     className="bg-white/5 border-white/10 focus:border-purple-500 h-12 text-white"
                     value={field.state.value}
+                    onBlur={field.handleBlur}
                     onChange={(e) => field.handleChange(e.target.value)}
                   />
+                  {field.state.meta.errors.length > 0 && (
+                    <em className="text-[10px] text-red-500 uppercase font-bold mt-1 block">
+                      {field.state.meta.errors.join(", ")}
+                    </em>
+                  )}
                 </Field>
               )}
             />

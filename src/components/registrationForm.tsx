@@ -46,7 +46,6 @@ export default function RegisterForm() {
 
         if (res?.error) {
           setHasError(true);
-          
           const errData = res.error;
           const errorCode = errData.code || "";
           const errorMessage = errData.message || "An error occurred during registration.";
@@ -74,7 +73,6 @@ export default function RegisterForm() {
           return;
         }
 
-        // Updated success toast with your requested message
         toast.success("Registration done! Email sent to " + value.email, { 
           id: toastId,
           duration: 6000 
@@ -155,26 +153,58 @@ export default function RegisterForm() {
             </form.Field>
 
             <div className="space-y-4">
-              <form.Field name="name">
+              <form.Field 
+                name="name"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value) return "Name is required";
+                    if (value.length < 3) return "Name must be at least 3 characters";
+                    return undefined;
+                  }
+                }}
+              >
                 {(field) => (
                   <div className="flex flex-col gap-1">
                     <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Your Name</label>
-                    <Input className="bg-white/5 border-white/10 text-white h-12 focus:border-purple-500 transition-all" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required />
+                    <Input 
+                      placeholder="e.g. John Doe"
+                      className="bg-white/5 border-white/10 text-white h-12 focus:border-purple-500 transition-all" 
+                      value={field.state.value} 
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)} 
+                    />
+                    {field.state.meta.errors.length > 0 && (
+                      <em className="text-[10px] text-red-500 uppercase font-bold mt-1 ml-1">{field.state.meta.errors.join(", ")}</em>
+                    )}
                   </div>
                 )}
               </form.Field>
 
-              <form.Field name="email">
+              <form.Field 
+                name="email"
+                validators={{
+                  onChange: ({ value }) => {
+                    if (!value) return "Email is required";
+                    const emailRegex = /^\S+@\S+\.\S+$/;
+                    if (!emailRegex.test(value)) return "Invalid email address";
+                    return undefined;
+                  }
+                }}
+              >
                 {(field) => (
                   <div className="flex flex-col gap-1">
                     <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Email Address</label>
                     <Input 
+                      placeholder="e.g. john@example.com"
                       type="email" 
                       className={`bg-white/5 border-white/10 text-white h-12 transition-all ${hasError ? "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]" : "focus:border-purple-500"}`} 
                       value={field.state.value} 
+                      onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)} 
-                      required 
                     />
+                    {field.state.meta.errors.length > 0 && (
+                      <em className="text-[10px] text-red-500 uppercase font-bold mt-1 ml-1">{field.state.meta.errors.join(", ")}</em>
+                    )}
                   </div>
                 )}
               </form.Field>
@@ -197,11 +227,32 @@ export default function RegisterForm() {
                   )}
                 </form.Field>
 
-                <form.Field name="password">
+                <form.Field 
+                  name="password"
+                  validators={{
+                    onChange: ({ value }) => {
+                      if (!value) return "Password required";
+                      if (value.length < 8) return "Min 8 characters";
+                      // Regex for at least one letter and one number
+                      if (!/^(?=.*[A-Za-z])(?=.*\d).+$/.test(value)) return "Must include letter & number";
+                      return undefined;
+                    }
+                  }}
+                >
                   {(field) => (
                     <div className="flex flex-col gap-1">
                       <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Password</label>
-                      <Input type="password" className="bg-white/5 border-white/10 text-white h-12 focus:border-purple-500" value={field.state.value} onChange={(e) => field.handleChange(e.target.value)} required minLength={8} />
+                      <Input 
+                        placeholder="••••••••"
+                        type="password" 
+                        className="bg-white/5 border-white/10 text-white h-12 focus:border-purple-500" 
+                        value={field.state.value} 
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)} 
+                      />
+                      {field.state.meta.errors.length > 0 && (
+                        <em className="text-[10px] text-red-500 uppercase font-bold mt-1 ml-1">{field.state.meta.errors.join(", ")}</em>
+                      )}
                     </div>
                   )}
                 </form.Field>
