@@ -6,6 +6,21 @@ import { useForm } from "@tanstack/react-form";
 import { Star, MessageSquare, Send, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
+
+const containerVariants = {
+  initial: { opacity: 0, y: 20 },
+  animate: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, staggerChildren: 0.1 } 
+  }
+};
+
+const itemVariants = {
+  initial: { opacity: 0, x: -10 },
+  animate: { opacity: 1, x: 0 }
+};
 
 export default function ReviewForm() {
   const searchParams = useSearchParams();
@@ -51,16 +66,25 @@ export default function ReviewForm() {
   });
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <button 
+    <motion.div 
+      initial="initial"
+      animate="animate"
+      variants={containerVariants}
+      className="max-w-2xl mx-auto px-4"
+    >
+      <motion.button 
+        variants={itemVariants}
         onClick={() => router.back()}
         className="flex items-center gap-2 text-gray-500 hover:text-white mb-8 transition-colors group"
       >
         <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
         <span className="text-[10px] font-black uppercase tracking-widest">Back to Sessions</span>
-      </button>
+      </motion.button>
 
-      <div className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden">
+      <motion.div 
+        variants={itemVariants}
+        className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden shadow-2xl"
+      >
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 blur-[100px] -z-10" />
         
         <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-2">
@@ -75,7 +99,7 @@ export default function ReviewForm() {
             e.preventDefault();
             form.handleSubmit();
           }}
-          className="space-y-8"
+          className="space-y-10"
         >
           <form.Field name="rating">
             {(field) => (
@@ -83,13 +107,15 @@ export default function ReviewForm() {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Overall Score</label>
                 <div className="flex gap-3">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button
+                    <motion.button
                       key={star}
                       type="button"
                       onMouseEnter={() => setHoverRating(star)}
                       onMouseLeave={() => setHoverRating(0)}
                       onClick={() => field.handleChange(star)}
-                      className="transition-all duration-200 active:scale-90"
+                      whileHover={{ scale: 1.2, rotate: 5 }}
+                      whileTap={{ scale: 0.8 }}
+                      className="transition-all duration-200"
                     >
                       <Star
                         size={36}
@@ -99,7 +125,7 @@ export default function ReviewForm() {
                             : "text-zinc-800"
                         } transition-colors`}
                       />
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
@@ -112,25 +138,32 @@ export default function ReviewForm() {
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Your Feedback</label>
                 <div className="relative">
                   <MessageSquare className="absolute top-4 left-4 size-5 text-gray-600" />
-                  <textarea
+                  <motion.textarea
+                    whileFocus={{ borderColor: "rgba(147, 51, 234, 0.5)" }}
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     placeholder="Tell us about your learning experience..."
-                    className="w-full bg-white/[0.03] border border-white/10 rounded-3xl p-4 pl-12 text-white placeholder:text-gray-700 focus:border-purple-500/50 focus:ring-0 min-h-[150px] transition-all"
+                    className="w-full bg-white/[0.03] border border-white/10 rounded-3xl p-4 pl-12 text-white placeholder:text-gray-700 focus:outline-none min-h-[150px] transition-all"
                   />
                 </div>
               </div>
             )}
           </form.Field>
 
-          <Button 
-            type="submit"
-            className="w-full rounded-2xl bg-purple-600 hover:bg-white hover:text-black h-16 font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl shadow-purple-500/10"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            Submit Review <Send className="ml-2 size-4" />
-          </Button>
+            <Button 
+              type="submit"
+              className="w-full rounded-2xl bg-purple-600 hover:bg-white hover:text-black h-16 font-black uppercase tracking-[0.2em] text-xs transition-all shadow-xl shadow-purple-500/10 group"
+            >
+              Submit Review 
+              <Send className="ml-2 size-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </Button>
+          </motion.div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
