@@ -6,6 +6,7 @@ import { Loader2, Ban } from "lucide-react";
 import Footer from "@/components/Footer";
 import StudentWelcome from "@/components/StudentgreetingSection";
 import SessionManagement from "@/components/sessionglasscard";
+import DashboardOverview from "@/components/DashboardOverview";
 import CategorySection from "@/components/CategoriesCard";
 import { cn } from "@/lib/utils";
 
@@ -51,12 +52,21 @@ const StudentDashboardPage = () => {
         "space-y-10 transition-all duration-300",
         isBanned && "pointer-events-none select-none grayscale opacity-40"
       )}>
-        <StudentWelcome />
+        <section id="welcome">
+          <StudentWelcome />
+        </section>
 
-        <SessionManagement role="student" userId={session.user.id} />
+        <section id="overview">
+          <DashboardOverview userId={session.user.id} role="STUDENT" />
+        </section>
 
-        <CategorySection role="student" /> 
+        <section id="sessions">
+          <SessionManagement role="student" userId={session.user.id} />
+        </section>
 
+        <section id="categories">
+          <CategorySection role="student" /> 
+        </section>
         <Footer />
       </div>
     </div>

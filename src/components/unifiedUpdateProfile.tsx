@@ -112,11 +112,11 @@ export default function GlobalUpdateProfile() {
     }
   };
 
-  if (authLoading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-purple-600" /></div>;
+  if (authLoading) return <div className="flex justify-center py-20 transition-colors duration-300"><Loader2 className="animate-spin text-purple-600" /></div>;
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <div className="bg-[#0A0A0B] border border-white/10 rounded-[3rem] p-10 relative overflow-hidden">
+    <div className="max-w-2xl mx-auto p-4 transition-colors duration-300">
+      <div className="bg-card border border-border/50 rounded-[3rem] p-10 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-purple-600/5 blur-[100px]" />
         
         <header className="mb-10">
@@ -124,29 +124,29 @@ export default function GlobalUpdateProfile() {
             <Settings size={20} />
             <span className="text-[10px] font-black uppercase tracking-[0.3em]">Control Panel</span>
           </div>
-          <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">
+          <h2 className="text-4xl font-black text-foreground italic uppercase tracking-tighter leading-none">
               Update <span className="text-purple-600">{user?.role}</span>
           </h2>
         </header>
 
         <form onSubmit={handleUpdate} className="space-y-8">
           <div className="space-y-4">
-            <h3 className="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
-              <BadgeCheck size={14} className="text-zinc-500" /> Identity Node
+            <h3 className="text-foreground font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+              <BadgeCheck size={14} className="text-muted-foreground" /> Identity Node
             </h3>
             <div className="relative">
-              <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" size={18} />
+              <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <input 
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white font-bold focus:border-purple-600 outline-none transition-all"
+                className="w-full bg-muted/10 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-foreground font-bold focus:border-purple-600 outline-none transition-all"
               />
             </div>
           </div>
 
           {user?.role === "TUTOR" && (
-            <div className="space-y-6 pt-8 border-t border-white/5 animate-in slide-in-from-bottom-4 duration-700">
-               <h3 className="text-white font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+            <div className="space-y-6 pt-8 border-t border-border/50 animate-in slide-in-from-bottom-4 duration-700">
+               <h3 className="text-foreground font-bold text-xs uppercase tracking-widest flex items-center gap-2">
                 <BookOpen size={14} className="text-purple-500" /> Professional Logic
               </h3>
               
@@ -157,7 +157,7 @@ export default function GlobalUpdateProfile() {
                     type="number"
                     value={price}
                     onChange={(e) => setPrice(Number(e.target.value))}
-                    className="w-full bg-zinc-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white font-bold focus:border-purple-600 outline-none transition-all"
+                    className="w-full bg-muted/10 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-foreground font-bold focus:border-purple-600 outline-none transition-all"
                   />
                 </div>
                 <div className="relative">
@@ -166,7 +166,7 @@ export default function GlobalUpdateProfile() {
                     type="number"
                     value={exp}
                     onChange={(e) => setExp(Number(e.target.value))}
-                    className="w-full bg-zinc-900/50 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white font-bold focus:border-purple-600 outline-none transition-all"
+                    className="w-full bg-muted/10 border border-border/50 rounded-2xl py-4 pl-12 pr-4 text-foreground font-bold focus:border-purple-600 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function GlobalUpdateProfile() {
                 rows={5}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                className="w-full bg-zinc-900/50 border border-white/5 rounded-2xl p-6 text-white font-medium focus:border-purple-600 outline-none transition-all resize-none"
+                className="w-full bg-muted/10 border border-border/50 rounded-2xl p-6 text-foreground font-medium focus:border-purple-600 outline-none transition-all resize-none"
                 placeholder={tutorId ? "Write your professional bio..." : "No tutor profile linked to this account yet."}
               />
             </div>
@@ -192,7 +192,7 @@ export default function GlobalUpdateProfile() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full bg-white text-black font-black uppercase py-5 rounded-2xl tracking-[0.3em] text-xs hover:bg-purple-600 hover:text-white transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            className="w-full bg-foreground text-background font-black uppercase py-5 rounded-2xl tracking-[0.3em] text-xs hover:bg-purple-600 hover:text-white transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {loading ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> Push Updates</>}
           </button>

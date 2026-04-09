@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface StudentClientProps {
@@ -45,11 +46,15 @@ export default function StudentClient({ userData, initialSession }: StudentClien
     }
   }, [userData?.status]);
 
-  const isAdmin = initialSession?.user?.role === "ADMIN";
+  const { data: session } = authClient.useSession() as any;
+  const userRole = session?.user?.role ?? initialSession?.user?.role ?? initialSession?.role ?? null;
+  const isAdmin: boolean = !!(userRole && String(userRole).toUpperCase() === "ADMIN");
   const isCurrentlyBanned = localStatus === "BANNED";
 
   const handleToggleBan = async () => {
-    const targetUserId = userData?.id; 
+    // Hard guard: only admins can ban/unban students
+    if (!isAdmin) return toast.error("Unauthorized: Admin access required");
+    const targetUserId = userData?.id;
     const nextStatusString = isCurrentlyBanned ? "ACTIVE" : "BANNED";
 
     if (!targetUserId) return toast.error("User ID not found");
@@ -95,7 +100,7 @@ export default function StudentClient({ userData, initialSession }: StudentClien
             className="w-full p-6 bg-zinc-900/80 border border-white/10 rounded-[2.5rem] flex flex-col sm:flex-row items-center justify-between backdrop-blur-md shadow-2xl gap-6"
           >
             <div className="flex items-center gap-4">
-              <motion.div 
+               <motion.div 
                 animate={{ 
                   backgroundColor: isCurrentlyBanned ? "rgba(239, 68, 68, 0.2)" : "rgba(16, 185, 129, 0.2)" 
                 }}

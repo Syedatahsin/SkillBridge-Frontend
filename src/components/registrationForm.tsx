@@ -115,13 +115,13 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#050505] p-6 font-sans">
-      <Card className={`w-full max-w-md bg-[#0A0A0B] border-white/10 shadow-2xl rounded-[2.5rem] transition-all duration-300 ${hasError ? "animate-shake border-red-500/50" : "hover:border-purple-500/20"}`}>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-950 via-purple-900 to-indigo-950 p-6 font-sans transition-colors duration-300">
+      <Card className={`w-full max-w-md bg-card border-none shadow-2xl rounded-[2.5rem] transition-all duration-300 ${hasError ? "animate-shake border border-red-500/50" : "hover:shadow-purple-500/20"}`}>
         <CardHeader className="text-center">
-          <CardTitle className="text-4xl font-black italic text-white uppercase tracking-tighter">
+          <CardTitle className="text-4xl font-black italic text-foreground uppercase tracking-tighter">
             SKILL<span className="text-purple-500">BRIDGE</span>
           </CardTitle>
-          <CardDescription className="text-gray-500 font-semibold uppercase text-[10px] tracking-widest mt-1">
+          <CardDescription className="text-muted-foreground font-semibold uppercase text-[10px] tracking-widest mt-1">
             Global Learning Community
           </CardDescription>
         </CardHeader>
@@ -139,15 +139,15 @@ export default function RegisterForm() {
             <form.Field name="image">
               {(field) => (
                 <div className="flex flex-col items-center group">
-                  <div className="relative w-24 h-24 rounded-full border-2 border-dashed border-white/10 overflow-hidden bg-white/5 flex items-center justify-center group-hover:border-purple-500 transition-colors cursor-pointer">
+                  <div className="relative w-24 h-24 rounded-full border-2 border-dashed border-border overflow-hidden bg-muted/20 flex items-center justify-center group-hover:border-purple-500 transition-colors cursor-pointer">
                     {preview ? (
                       <img src={preview} className="w-full h-full object-cover" alt="Profile" />
                     ) : (
-                      <UserCircle size={40} className="text-white/10 group-hover:text-purple-500 transition-colors" />
+                      <UserCircle size={40} className="text-muted-foreground/20 group-hover:text-purple-500 transition-colors" />
                     )}
                     <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileChange(e, field)} />
                   </div>
-                  <span className="text-[9px] font-black uppercase text-gray-600 mt-2 tracking-widest">Update Photo</span>
+                  <span className="text-[9px] font-black uppercase text-muted-foreground/60 mt-2 tracking-widest">Update Photo</span>
                 </div>
               )}
             </form.Field>
@@ -165,10 +165,10 @@ export default function RegisterForm() {
               >
                 {(field) => (
                   <div className="flex flex-col gap-1">
-                    <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Your Name</label>
+                    <label className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest ml-1">Your Name</label>
                     <Input 
                       placeholder="e.g. John Doe"
-                      className="bg-white/5 border-white/10 text-white h-12 focus:border-purple-500 transition-all" 
+                      className="bg-background border-border text-foreground h-12 focus:border-purple-500 transition-all" 
                       value={field.state.value} 
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)} 
@@ -193,11 +193,11 @@ export default function RegisterForm() {
               >
                 {(field) => (
                   <div className="flex flex-col gap-1">
-                    <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Email Address</label>
+                    <label className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest ml-1">Email Address</label>
                     <Input 
                       placeholder="e.g. john@example.com"
                       type="email" 
-                      className={`bg-white/5 border-white/10 text-white h-12 transition-all ${hasError ? "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]" : "focus:border-purple-500"}`} 
+                      className={`bg-background border-border text-foreground h-12 transition-all ${hasError ? "border-red-500 shadow-[0_0_10px_rgba(239,68,68,0.1)]" : "focus:border-purple-500"}`} 
                       value={field.state.value} 
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)} 
@@ -213,12 +213,12 @@ export default function RegisterForm() {
                 <form.Field name="role">
                   {(field) => (
                     <div className="flex flex-col gap-1">
-                      <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Role</label>
+                      <label className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest ml-1">Role</label>
                       <Select value={field.state.value} onValueChange={(val: any) => field.handleChange(val)}>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white h-12">
+                        <SelectTrigger className="bg-background border-border text-foreground h-12 transition-colors">
                           <SelectValue placeholder="Role" />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#0A0A0B] text-white border-white/10">
+                        <SelectContent className="bg-card text-foreground border-border shadow-2xl">
                           <SelectItem value="student">Student</SelectItem>
                           <SelectItem value="tutor">Teacher</SelectItem>
                         </SelectContent>
@@ -241,11 +241,11 @@ export default function RegisterForm() {
                 >
                   {(field) => (
                     <div className="flex flex-col gap-1">
-                      <label className="text-gray-500 text-[10px] uppercase font-bold tracking-widest ml-1">Password</label>
+                      <label className="text-muted-foreground text-[10px] uppercase font-bold tracking-widest ml-1">Password</label>
                       <Input 
                         placeholder="••••••••"
                         type="password" 
-                        className="bg-white/5 border-white/10 text-white h-12 focus:border-purple-500" 
+                        className="bg-background border-border text-foreground h-12 focus:border-purple-500 transition-colors" 
                         value={field.state.value} 
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)} 
@@ -268,7 +268,7 @@ export default function RegisterForm() {
                 {isUploading ? <Loader2 className="animate-spin" /> : "Start Learning"}
               </Button>
               
-              <Link href="/login" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center hover:text-white transition-colors">
+              <Link href="/login" className="block text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-center hover:text-foreground transition-colors">
                 Already a member? <span className="text-purple-500 ml-1 underline underline-offset-4">Sign In</span>
               </Link>
             </div>

@@ -1,5 +1,5 @@
-
 import SkillBridgeNavbar from "@/components/navbar1";
+import Sidebar from "@/components/sidebar";
 
 export default function DashboardLayout({
   children,
@@ -7,12 +7,14 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    // This empty tag is a Fragment. It groups the elements without adding a new div to the DOM.
-    <>
+    <div className="min-h-screen bg-[#050505] flex flex-col">
       <SkillBridgeNavbar role="admin" />
-      <div className="container mx-auto px-4 py-8">
-        {children}
+      <div className="flex flex-1 w-full">
+        <Sidebar />
+        <main className="flex-1 min-w-0 container mx-auto px-4 py-8 lg:px-8">
+          {children}
+        </main>
       </div>
-    </>
+    </div>
   );
 }

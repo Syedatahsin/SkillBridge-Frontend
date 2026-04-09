@@ -32,7 +32,7 @@ const Hero1 = ({
   className,
 }: Hero1Props) => {
   return (
-    <section className={cn("relative overflow-hidden bg-black py-24 lg:py-32", className)}>
+    <section className={cn("relative overflow-hidden bg-background py-24 lg:py-32 transition-colors duration-300", className)}>
       {/* --- Elegant Background Accents --- */}
       <div className="absolute -left-[10%] top-0 h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-[120px]" />
       <div className="absolute -right-[10%] bottom-0 h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[120px]" />
@@ -45,7 +45,7 @@ const Hero1 = ({
             {badge && (
               <Badge 
                 variant="outline" 
-                className="mb-6 border-white/10 bg-white/5 px-4 py-1 text-purple-400 backdrop-blur-md transition-all hover:bg-white/10"
+                className="mb-6 border-border/10 bg-background/60 px-4 py-1 text-primary backdrop-blur-md transition-all hover:bg-background/80"
               >
                 <Sparkles className="mr-2 size-3" />
                 {badge}
@@ -53,15 +53,15 @@ const Hero1 = ({
               </Badge>
             )}
             
-            <h1 className="mb-6 text-pretty text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-7xl">
+            <h1 className="mb-6 text-pretty text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-7xl">
               {heading.split(" ").map((word, i) => (
-                <span key={i} className={i > 3 ? "bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent" : ""}>
+                <span key={i} className={i > 3 ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent" : "text-foreground"}>
                   {word}{" "}
                 </span>
               ))}
             </h1>
 
-            <p className="mb-8 max-w-xl text-lg leading-relaxed text-gray-400 lg:text-xl">
+            <p className="mb-8 max-w-xl text-lg leading-relaxed text-muted-foreground lg:text-xl">
               {description}
             </p>
 
@@ -86,7 +86,7 @@ const Hero1 = ({
             {/* Soft Glow behind image */}
             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500 to-purple-600 opacity-20 blur-xl transition duration-1000 group-hover:opacity-40" />
             
-            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl border border-border/10 bg-card shadow-2xl transition-colors duration-300">
               <img
                 src={image.src}
                 alt={image.alt}
@@ -100,8 +100,8 @@ const Hero1 = ({
                     <BookOpen className="size-5 text-indigo-400" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400">Subjects</p>
-                    <p className="text-sm font-bold text-white">Explore Vast Categories</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Subjects</p>
+                    <p className="text-sm font-bold text-foreground">Explore Vast Categories</p>
                   </div>
                 </div>
                 
@@ -110,8 +110,8 @@ const Hero1 = ({
                     <Calendar className="size-5 text-purple-400" />
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400">Scheduling</p>
-                    <p className="text-sm font-bold text-white">24/7 Availability</p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Scheduling</p>
+                    <p className="text-sm font-bold text-foreground">24/7 Availability</p>
                   </div>
                 </div>
               </div>

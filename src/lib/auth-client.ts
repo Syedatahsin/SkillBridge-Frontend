@@ -1,8 +1,8 @@
 import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
-  baseURL: typeof window !== "undefined" ? window.location.origin : "",
+  baseURL: "https://additionalfeaturesskillbridge.vercel.app", // Your Backend URL
   fetchOptions: {
-    credentials: "include",
+    credentials: "include", // Essential for sending the state cookie
   },
 });

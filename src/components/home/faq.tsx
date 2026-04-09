@@ -33,7 +33,7 @@ const FAQ_DATA = [
 
 export default function FAQSection() {
   return (
-    <section className="bg-black py-24 text-white relative overflow-hidden">
+    <section className="bg-background py-24 text-foreground relative overflow-hidden transition-colors duration-300">
       {/* Background Decorative Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] pointer-events-none" />
 
@@ -47,7 +47,7 @@ export default function FAQSection() {
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Questions</span>
           </h2>
-          <p className="text-gray-500 text-lg">
+          <p className="text-muted-foreground text-lg">
             Everything you need to know about the SkillBridge platform.
           </p>
         </div>
@@ -58,12 +58,12 @@ export default function FAQSection() {
             <AccordionItem 
               key={index} 
               value={`item-${index}`}
-              className="border border-white/10 bg-white/5 rounded-2xl px-6 transition-all hover:border-purple-500/30"
+              className="border border-border bg-card rounded-2xl px-6 transition-all hover:border-purple-500/30"
             >
               <AccordionTrigger className="text-left font-semibold text-lg hover:no-underline hover:text-purple-400 py-6">
                 {faq.question}
               </AccordionTrigger>
-              <AccordionContent className="text-gray-400 text-base pb-6 leading-relaxed">
+              <AccordionContent className="text-muted-foreground text-base pb-6 leading-relaxed">
                 {faq.answer}
               </AccordionContent>
             </AccordionItem>
@@ -72,7 +72,7 @@ export default function FAQSection() {
 
         {/* Bottom CTA */}
         <div className="mt-16 text-center">
-          <p className="text-gray-500">
+          <p className="text-muted-foreground">
             Still have questions?{" "}
             <a href="mailto:anikasyeda82@gmail.com" className="text-purple-400 font-bold hover:underline">
               Contact Support

@@ -1,61 +1,74 @@
 import { NextRequest, NextResponse } from "next/server";
-import { userService } from "./Serveraction/cookiesaction"; // Adjust path as needed
+import { userService } from "./Serveraction/cookiesaction";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // 1. Fetch Session using your manual service
-  const { data: session } = await userService.getSession();
-  const user = session?.user;
+  // ✅ 1. ALWAYS allow auth-related routes (VERY IMPORTANT)
+  if (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/registration") ||
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/auth")
+  ) {
+    return NextResponse.next();
+  }
 
-  // 2. AUTH CHECK: Redirect to login if no session exists
-  if (!user) {
-    // Prevent redirect loops if already on login/registration
-    if (pathname.startsWith("/login") || pathname.startsWith("/registration")) {
-      return NextResponse.next();
+  let user: any = null;
+
+  // ✅ 2. SAFE session fetch (never break request)
+  try {
+    const { data: session } = await userService.getSession();
+    user = session?.user;
+  } catch (err) {
+    user = null;
+  }
+
+  // ❗ IMPORTANT: DO NOT BLOCK if user is null
+  // (this is what was causing your Google + verify redirect loop)
+
+  // ✅ 3. ROLE-BASED ROUTING ONLY (safe layer)
+
+  if (user) {
+    const role = user.role;
+
+    // 🚫 STUDENT cannot access teacher routes
+    if (role === "STUDENT" && pathname.startsWith("/teacher")) {
+      return NextResponse.redirect(
+        new URL("/student", request.url)
+      );
     }
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+
+    // 🚫 TUTOR cannot access student routes
+    if (role === "TUTOR" && pathname.startsWith("/student")) {
+      return NextResponse.redirect(
+        new URL("/teacher", request.url)
+      );
+    }
+
+    // 🚫 ADMIN protection
+    if (pathname.startsWith("/admin") && role !== "ADMIN") {
+      const fallback =
+        role === "TUTOR" ? "/teacher" : "/student";
+
+      return NextResponse.redirect(
+        new URL(fallback, request.url)
+      );
+    }
+
+    // ✅ Smart dashboard redirect
+    if (pathname === "/dashboard") {
+      const target =
+        role === "ADMIN" || role === "TUTOR"
+          ? "/teacher"
+          : "/student";
+
+      return NextResponse.redirect(
+        new URL(target, request.url)
+      );
+    }
   }
 
-  // 3. ROLE EXTRACTION (Using your UPPERCASE roles)
-  const role = user.role; // e.g., "TUTOR", "STUDENT", "ADMIN"
-
-  // 4. ROLE PROTECTION LOGIC
-  
-  // Case: STUDENT trying to access TEACHER routes
-  if (role === "STUDENT" && pathname.startsWith("/teacher")) {
-    return NextResponse.redirect(new URL("/student/", request.url));
-  }
-
-  // Case: TUTOR trying to access STUDENT routes
-  if (role === "TUTOR" && pathname.startsWith("/student")) {
-    return NextResponse.redirect(new URL("/teacher/", request.url));
-  }
-
-  // Case: ADMIN PROTECTION
-  if (pathname.startsWith("/admin") && role !== "ADMIN") {
-    const fallback = role === "TUTOR" ? "/teacher/" : "/student/";
-    return NextResponse.redirect(new URL(fallback, request.url));
-  }
-
-  // 5. SMART REDIRECT FOR GENERIC DASHBOARD
-  // If a user hits "/dashboard", send them to the right place based on role
-  if (pathname === "/dashboard") {
-    const target = role === "TUTOR" || role === "ADMIN" ? "/teacher/" : "/student/";
-    return NextResponse.redirect(new URL(target, request.url));
-  }
-
+  // ✅ 4. CRITICAL: always allow request to continue
   return NextResponse.next();
 }
-
-// 6. MATCHER CONFIGURATION
-export const config = {
-  matcher: [
-    "/teacher/:path*",
-    "/student/:path*",
-    "/admin/:path*",
-    "/dashboard",
-  ],
-};

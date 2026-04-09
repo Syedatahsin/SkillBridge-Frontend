@@ -50,7 +50,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-black text-white border-t border-white/5 relative overflow-hidden">
+    <footer className="bg-background text-foreground border-t border-border/50 relative overflow-hidden transition-colors duration-300">
       {/* Decorative Background Glow */}
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 blur-[120px] pointer-events-none" />
 
@@ -63,28 +63,28 @@ export default function Footer() {
               <h2 className="text-4xl font-bold tracking-tight">
                 Let&apos;s <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Connect</span>
               </h2>
-              <p className="text-gray-400 max-w-sm leading-relaxed">
+              <p className="text-muted-foreground max-w-sm leading-relaxed">
                 Have questions about SkillBridge? Reach out to me directly and let&apos;s build something amazing together.
               </p>
             </div>
 
             <div className="space-y-6">
               <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                <div className="p-3 rounded-2xl bg-muted/20 border border-border/50 text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all">
                   <Phone size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Call Me</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Call Me</p>
                   <p className="text-lg font-medium">+880 1738 980541</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 group">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                <div className="p-3 rounded-2xl bg-muted/20 border border-border/50 text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all">
                   <Mail size={20} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Email</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold">Email</p>
                   <p className="text-lg font-medium underline underline-offset-4 decoration-purple-500/50">
                     anikasyeda82@gmail.com
                   </p>
@@ -108,7 +108,7 @@ export default function Footer() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="rounded-full border-white/10 bg-white/5 hover:bg-purple-600 hover:border-purple-600 transition-all"
+                    className="rounded-full border-border/50 bg-muted/20 hover:bg-purple-600 hover:border-purple-600 transition-all"
                   >
                     <Icon size={18} />
                   </Button>
@@ -118,16 +118,16 @@ export default function Footer() {
           </div>
 
           {/* Right Side: Contact Form */}
-          <div className="p-8 rounded-[2.5rem] border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl">
+          <div className="p-8 rounded-[2.5rem] border border-border bg-card/50 backdrop-blur-xl shadow-2xl">
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase ml-2">Full Name</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase ml-2">Full Name</label>
                   <Input
                     name="name"
                     required
                     placeholder="John Doe"
-                    className="bg-black/50 border-white/10 rounded-2xl h-12 focus-visible:ring-purple-500"
+                    className="bg-background border-border rounded-2xl h-12 focus-visible:ring-purple-500"
                   />
                 </div>
                 <div className="space-y-2">
@@ -137,7 +137,7 @@ export default function Footer() {
                     type="email"
                     required
                     placeholder="john@example.com"
-                    className="bg-black/50 border-white/10 rounded-2xl h-12 focus-visible:ring-purple-500"
+                    className="bg-background border-border rounded-2xl h-12 focus-visible:ring-purple-500"
                   />
                 </div>
               </div>
@@ -147,7 +147,7 @@ export default function Footer() {
                   name="message"
                   required
                   placeholder="How can I help you?"
-                  className="bg-black/50 border-white/10 rounded-2xl min-h-[120px] focus-visible:ring-purple-500 resize-none"
+                  className="bg-background border-border rounded-2xl min-h-[120px] focus-visible:ring-purple-500 resize-none"
                 />
               </div>
               <Button
@@ -168,11 +168,11 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-24 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-500 text-sm italic">
-            Designed & Developed by <span className="text-white font-bold not-italic">Syeda Anika Tahsin</span>
+        <div className="mt-24 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-muted-foreground text-sm italic">
+            Designed & Developed by <span className="text-foreground font-bold not-italic">Syeda Anika Tahsin</span>
           </p>
-          <div className="flex gap-8 text-sm text-gray-500 font-medium">
+          <div className="flex gap-8 text-sm text-muted-foreground font-medium">
             <a href="#" className="hover:text-purple-400 transition-colors">Privacy Policy</a>
             <a href="#" className="hover:text-purple-400 transition-colors">Terms of Service</a>
             <p>© 2026 SkillBridge</p>
