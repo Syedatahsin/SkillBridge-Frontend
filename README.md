@@ -94,7 +94,7 @@ You will need the following installed:
 
 1. **Clone the repository:**
    ```bash
-   git clone <https://github.com/Syedatahsin/SkillBridge-Frontend>
+   git clone https://github.com/Syedatahsin/SkillBridge-Frontend
    cd skillbridge-clean
    ```
 
