@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { motion } from "framer-motion";
 
 import Footer from "@/components/Footer";
 import TeacherOnboardingCard from "@/components/profileTeacher";
@@ -55,7 +55,7 @@ export default function TeacherDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-5">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-5">
       <div className="max-w-7xl mx-auto">
         {!tutorId ? (
           /* Show Onboarding if no tutorId found */
@@ -64,7 +64,12 @@ export default function TeacherDashboardPage() {
           </div>
         ) : (
           /* Show Dashboard if tutorId exists */
-          <div className="space-y-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="space-y-10"
+          >
             <header className="py-6 border-b border-white/5 flex justify-between items-center">
               <h1 className="text-3xl font-black italic text-purple-500 uppercase">
                 Teacher Console
@@ -84,18 +89,18 @@ export default function TeacherDashboardPage() {
               <TeacherRevenueCard tutorId={tutorId} />
             </section>
 
-            <section id="overview">
-              <DashboardOverview userId={tutorId} role="TUTOR" />
-            </section>
-
             <section id="sessions">
               <SessionManagement role="teacher" userId={tutorId} />
+            </section>
+
+            <section id="overview">
+              <DashboardOverview userId={tutorId} role="TUTOR" />
             </section>
 
             <section id="reviews">
               <ReviewSection userId={tutorId} />
             </section>
-          </div>
+          </motion.div>
         )}
 
         <Footer />

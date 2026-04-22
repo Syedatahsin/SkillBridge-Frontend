@@ -9,6 +9,7 @@ import SessionManagement from "@/components/sessionglasscard";
 import DashboardOverview from "@/components/DashboardOverview";
 import CategorySection from "@/components/CategoriesCard";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 const StudentDashboardPage = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -48,27 +49,32 @@ const StudentDashboardPage = () => {
 
       {/* 2. DASHBOARD CONTENT */}
       {/* If banned, we add pointer-events-none so NO buttons work, and grayscale to look "off" */}
-      <div className={cn(
-        "space-y-10 transition-all duration-300",
-        isBanned && "pointer-events-none select-none grayscale opacity-40"
-      )}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className={cn(
+          "space-y-10 transition-all duration-300",
+          isBanned && "pointer-events-none select-none grayscale opacity-40"
+        )}
+      >
         <section id="welcome">
           <StudentWelcome />
-        </section>
-
-        <section id="overview">
-          <DashboardOverview userId={session.user.id} role="STUDENT" />
         </section>
 
         <section id="sessions">
           <SessionManagement role="student" userId={session.user.id} />
         </section>
 
+        <section id="overview">
+          <DashboardOverview userId={session.user.id} role="STUDENT" />
+        </section>
+
         <section id="categories">
           <CategorySection role="student" /> 
         </section>
         <Footer />
-      </div>
+      </motion.div>
     </div>
   );
 };

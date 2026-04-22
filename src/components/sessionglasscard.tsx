@@ -2,11 +2,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Calendar, Clock, Video, UserCheck, 
   CheckCircle2, Loader2, User, Star, Inbox, AlertCircle, Mail,
-  DollarSign, Landmark 
+  DollarSign, Landmark, ChevronLeft, ChevronRight, FileText, Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
@@ -14,6 +15,9 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import TranscriptModal from "./TranscriptModal";
+import QuizDisplay from "./QuizDisplay";
+import SummaryDisplay from "./SummaryDisplay";
 
 interface SessionProps {
   role: "teacher" | "student";
@@ -25,6 +29,21 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
   const [sessions, setSessions] = useState<any[]>([]);
   const [totalEarnings, setTotalEarnings] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("upcoming");
+  const [page, setPage] = useState<number>(1);
+  const [meta, setMeta] = useState<any>(null);
+  
+  // Post-session resource state
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+  const [isTranscriptModalOpen, setIsTranscriptModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+  const [sessionResources, setSessionResources] = useState<Record<string, any>>({});
+  const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+  
+  // Note/Summary state
+  const [isSummaryModalOpen, setIsSummaryModalOpen] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [summaryData, setSummaryData] = useState<any>(null);
 
   const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
 
@@ -32,21 +51,22 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     try {
       setLoading(true);
       const endpoint = role === "student" 
-        ? `${BASE_URL}/api/bookings/studentbookings?userId=${userId}`
-        : `${BASE_URL}/api/bookings/tutorbookings?userId=${userId}`;
+        ? `${BASE_URL}/api/bookings/studentbookings?userId=${userId}&status=${activeTab}&page=${page}&limit=4`
+        : `${BASE_URL}/api/bookings/tutorbookings?userId=${userId}&status=${activeTab}&page=${page}&limit=4`;
 
       const response = await fetch(endpoint);
       if (!response.ok) throw new Error("Failed to load sessions");
       
       const data = await response.json();
       
-      // Update logic to handle the Object response for teachers
-      if (role === "teacher" && data.bookings) {
+      if (data.bookings) {
         setSessions(data.bookings);
-        setTotalEarnings(data.totalEarnings || 0);
+        if (data.meta) setMeta(data.meta);
+        if (role === "teacher") {
+          setTotalEarnings(data.totalEarnings || 0);
+        }
       } else {
-        // Fallback for students or plain array responses
-        setSessions(Array.isArray(data) ? data : data.bookings || []);
+        setSessions(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error("Sync Error:", err);
@@ -54,11 +74,33 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
     } finally {
       setLoading(false);
     }
-  }, [userId, role, BASE_URL]);
+  }, [userId, role, BASE_URL, activeTab, page]);
+
+  const fetchResource = useCallback(async (bookingId: string) => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/session-resources/${bookingId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSessionResources(prev => ({ ...prev, [bookingId]: data }));
+      }
+    } catch (err) {
+      console.error("Resource Fetch Error:", err);
+    }
+  }, [BASE_URL]);
 
   useEffect(() => {
     if (userId) fetchSessions();
   }, [fetchSessions, userId]);
+
+  useEffect(() => {
+    if (activeTab === "completed" && sessions.length > 0) {
+      sessions.forEach(s => {
+        if (!sessionResources[s.id]) {
+          fetchResource(s.id);
+        }
+      });
+    }
+  }, [activeTab, sessions, fetchResource, sessionResources]);
 
   const completeForm = useForm({
     defaultValues: { bookingId: "" },
@@ -72,13 +114,71 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
         if (!res.ok) throw new Error("Update failed");
         toast.success("Session completed!", { id: toastId });
         fetchSessions();
+
+        // Automatically prompt for transcript after completion
+        setSelectedBookingId(value.bookingId);
+        setIsTranscriptModalOpen(true);
       } catch (err) {
         toast.error("Error updating status", { id: toastId });
       }
     },
   });
 
+  const generateQuiz = async (bookingId: string) => {
+    setIsGeneratingQuiz(true);
+    const toastId = toast.loading("AI is generating your quiz...");
+    try {
+      const response = await fetch(`${BASE_URL}/api/session-resources/generate-quiz`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      if (!response.ok) throw new Error("Quiz generation failed");
+
+      const data = await response.json();
+      setSessionResources(prev => ({ ...prev, [bookingId]: data }));
+      toast.success("Quiz generated! Get ready...", { id: toastId });
+      setIsQuizModalOpen(true);
+    } catch (err) {
+      toast.error("Error generating quiz", { id: toastId });
+    } finally {
+      setIsGeneratingQuiz(false);
+    }
+  };
+
+  const generateSummary = async (bookingId: string) => {
+    setIsGeneratingSummary(true);
+    const toastId = toast.loading("AI is preparing your study notes...");
+    try {
+      const response = await fetch(`${BASE_URL}/api/session-resources/generate-summary`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+
+      if (!response.ok) throw new Error("Summary generation failed");
+
+      const data = await response.json();
+      setSummaryData(data);
+      toast.success("Notes ready!", { id: toastId });
+      setIsSummaryModalOpen(true);
+    } catch (err) {
+      toast.error("Error generating notes", { id: toastId });
+    } finally {
+      setIsGeneratingSummary(false);
+    }
+  };
+
   const statuses = ["upcoming", "completed"];
+
+  const handleNext = () => {
+    if (meta && page < meta.lastPage) setPage(p => p + 1);
+  };
+
+  const handlePrev = () => {
+    if (page > 1) setPage(p => p - 1);
+  };
 
   if (loading) {
     return (
@@ -96,10 +196,13 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
 
 
 
-      <Tabs defaultValue="upcoming" className="w-full">
+      <Tabs value={activeTab} onValueChange={(val) => {
+        setActiveTab(val);
+        setPage(1);
+      }} className="w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
           <div>
-            <h2 className="text-4xl font-black text-white italic uppercase tracking-tighter">
+            <h2 className="text-2xl sm:text-4xl font-black text-white italic uppercase tracking-tighter">
               {role === "teacher" ? "Session" : "My"} <span className="text-purple-600">Control</span>
             </h2>
             <p className="text-gray-500 font-bold text-[10px] uppercase tracking-widest mt-2">
@@ -107,7 +210,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
             </p>
           </div>
           
-          <div className="bg-white/5 border border-white/10 p-1 rounded-full">
+          <div className="bg-white/5 border border-white/10 p-1 rounded-full overflow-x-auto">
             <TabsList className="bg-transparent border-none gap-1">
               {statuses.map((status) => (
                 <TabsTrigger 
@@ -125,7 +228,7 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
         {statuses.map((status) => {
           const filteredSessions = sessions.filter((s: any) => {
             const sStatus = s.status.toLowerCase();
-            if (status === "upcoming") return sStatus === "upcoming" || sStatus === "confirmed";
+            if (status === "upcoming") return ["upcoming", "confirmed", "pending"].includes(sStatus);
             return sStatus === status;
           });
 
@@ -149,10 +252,13 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredSessions.map((session: any) => (
-                    <div 
-                      key={session.id} 
-                      className="bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] p-8 hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group"
+                  {filteredSessions.map((session: any, index: number) => (
+                    <motion.div 
+                      key={session.id}
+                      initial={{ opacity: 0, y: 30 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.21, 0.47, 0.32, 0.98] }}
+                      className="bg-[#0A0A0B] border border-white/10 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 hover:border-purple-500/50 transition-all duration-300 relative overflow-hidden group"
                     >
                       <div className="flex justify-between items-start mb-6">
                         <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/10">
@@ -223,23 +329,158 @@ const SessionManagement = ({ role, userId }: SessionProps) => {
                           </>
                         )}
 
-                        {session.status === "COMPLETED" && role === "student" && (
-                            <Button 
-                              onClick={() => router.push(`/student/addreview?studentId=${session.studentId}&tutorId=${session.tutorId}&bookingId=${session.id}`)}
-                              className="w-full rounded-xl bg-white text-black hover:bg-purple-600 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg"
-                            >
-                              <Star size={14} className="mr-2 fill-current text-yellow-500" /> Rate Experience
-                            </Button>
+                        {session.status === "COMPLETED" && (
+                          <div className="flex flex-col gap-2 w-full">
+                            {role === "teacher" && (
+                              <Button 
+                                onClick={() => {
+                                  setSelectedBookingId(session.id);
+                                  setIsTranscriptModalOpen(true);
+                                }}
+                                className="w-full rounded-xl border-white/10 bg-white/5 text-purple-400 hover:bg-purple-500 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all"
+                              >
+                                {sessionResources[session.id]?.transcriptText ? "Edit Transcript" : "Upload Transcript"}
+                              </Button>
+                            )}
+
+                            {role === "student" && (
+                              <>
+                                <Button 
+                                  onClick={() => router.push(`/student/addreview?studentId=${session.studentId}&tutorId=${session.tutorId}&bookingId=${session.id}`)}
+                                  className="w-full rounded-xl bg-white text-black hover:bg-purple-600 hover:text-white font-black uppercase text-[10px] tracking-widest h-12 transition-all shadow-lg"
+                                >
+                                  <Star size={14} className="mr-2 fill-current text-yellow-500" /> Rate Experience
+                                </Button>
+
+                                {sessionResources[session.id]?.transcriptText ? (
+                                  <>
+                                    <Button 
+                                    onClick={() => {
+                                      setSelectedBookingId(session.id);
+                                      if (sessionResources[session.id]?.quizData) {
+                                        setIsQuizModalOpen(true);
+                                      } else {
+                                        generateQuiz(session.id);
+                                      }
+                                    }}
+                                    disabled={isGeneratingQuiz}
+                                    className="w-full rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-white hover:to-white hover:text-black font-black uppercase text-[10px] tracking-widest h-12 transition-all animate-glow active:scale-[0.98]"
+                                  >
+                                    {isGeneratingQuiz ? <Loader2 className="animate-spin" size={16} /> : (
+                                      <div className="flex items-center gap-2">
+                                        <div className="size-2 rounded-full bg-white animate-pulse" />
+                                        Take AI Quiz
+                                      </div>
+                                    )}
+                                  </Button>
+
+                                  <Button 
+                                    onClick={() => {
+                                      setSelectedBookingId(session.id);
+                                      generateSummary(session.id);
+                                    }}
+                                    disabled={isGeneratingSummary}
+                                    variant="outline"
+                                    className="w-full rounded-xl border-purple-500/30 bg-purple-500/5 text-zinc-300 hover:bg-white hover:text-black hover:border-white font-black uppercase text-[10px] tracking-widest h-12 transition-all"
+                                  >
+                                    {isGeneratingSummary ? <Loader2 className="animate-spin" size={16} /> : (
+                                      <div className="flex items-center gap-2">
+                                        <div className="relative">
+                                          <FileText size={14} className="text-purple-500" />
+                                          <Sparkles size={8} className="absolute -top-1 -right-1 text-yellow-400 animate-pulse fill-current" />
+                                        </div>
+                                        AI Smart Notes
+                                      </div>
+                                    )}
+                                  </Button>
+                                </>
+                              ) : (
+                                  <Button 
+                                    disabled
+                                    className="w-full rounded-xl bg-white/5 border border-white/5 text-zinc-600 font-black uppercase text-[10px] tracking-widest h-12 opacity-50 cursor-not-allowed"
+                                  >
+                                    Quiz (Waiting for Teacher)
+                                  </Button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               )}
+
+              {filteredSessions.length > 0 && (
+                <div className="flex justify-between items-center mt-8 p-6 bg-[#0A0A0B] border border-white/10 rounded-3xl">
+                  {meta && meta.lastPage > 0 ? (
+                    <div className="flex items-center gap-4">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handlePrev}
+                        disabled={page === 1}
+                        className="bg-zinc-900 border-white/10 hover:bg-white/10 hover:text-white"
+                      >
+                        <ChevronLeft size={16} />
+                      </Button>
+                      <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                        Page <span className="text-white">{page}</span> of {meta.lastPage}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={handleNext}
+                        disabled={page === meta.lastPage}
+                        className="bg-zinc-900 border-white/10 hover:bg-white/10 hover:text-white"
+                      >
+                        <ChevronRight size={16} />
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+                      End of Directory
+                    </span>
+                  )}
+                  <span className="text-zinc-400 text-xs font-medium">
+                    Total Records: <span className="text-purple-500">{meta ? meta.total : sessions.length}</span>
+                  </span>
+                </div>
+              )}
+
             </TabsContent>
           );
         })}
       </Tabs>
+
+      {selectedBookingId && (
+        <>
+          <TranscriptModal 
+            isOpen={isTranscriptModalOpen}
+            onClose={() => setIsTranscriptModalOpen(false)}
+            bookingId={selectedBookingId}
+            existingTranscript={sessionResources[selectedBookingId]?.transcriptText}
+            onSuccess={() => fetchResource(selectedBookingId)}
+          />
+
+          {sessionResources[selectedBookingId]?.quizData && (
+            <QuizDisplay 
+              isOpen={isQuizModalOpen}
+              onClose={() => setIsQuizModalOpen(false)}
+              quizData={sessionResources[selectedBookingId].quizData}
+            />
+          )}
+
+          {summaryData && (
+            <SummaryDisplay 
+              isOpen={isSummaryModalOpen}
+              onClose={() => setIsSummaryModalOpen(false)}
+              summaryData={summaryData}
+            />
+          )}
+        </>
+      )}
     </section>
   );
 };

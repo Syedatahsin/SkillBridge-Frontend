@@ -21,26 +21,28 @@ export default function AdminDashboard() {
         
         // Fetch all data in parallel
         const [tutorRes, studentRes, bookingRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/alltutor?limit=10`),
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?limit=10`), // Keeping your limit=10
-          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/bookings?limit=10`)
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/alltutor?limit=4`),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users?limit=10&role=STUDENT`),
+          fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/bookings?limit=4`)
         ]);
 
         const tutorJson = await tutorRes.json();
         const studentJson = await studentRes.json();
         const bookingJson = await bookingRes.json();
         
-        if (tutorJson.success) setTutors(tutorJson.data);
+        if (tutorJson.success) {
+          // Safety slice in case backend doesn't respect limit immediately
+          setTutors(tutorJson.data.slice(0, 4));
+        }
         
-        // --- ADDED LOGIC HERE ---
         if (studentJson.success) {
           // Filter the users to only include those with the role "STUDENT"
           const filteredStudents = studentJson.data.filter(
             (user: any) => user.role === "STUDENT"
           );
-          setStudents(filteredStudents);
+          // Only show up to 4 on the dashboard overview
+          setStudents(filteredStudents.slice(0, 4));
         }
-        // ------------------------
 
         if (bookingJson.success) setBookings(bookingJson.data);
 

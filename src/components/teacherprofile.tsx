@@ -3,15 +3,19 @@
 import React, { useState } from "react";
 import { 
   Star, Clock, ShieldCheck, User, Sparkles, 
-  HandCoins, X, Zap, Target
+  HandCoins, X, Zap, Target, ChevronLeft, ChevronRight
 } from "lucide-react";
 
 export default function TeacherProfileClient({ tutor }: { tutor: any }) {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 3;
 
   // Use real data from Prisma relations
   const slots = tutor.availability || [];
-  const reviews = tutor.reviews || [];
+  const allReviews = tutor.reviews || [];
+  const maxPage = Math.ceil(allReviews.length / ITEMS_PER_PAGE) || 1;
+  const currentReviews = allReviews.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-purple-500/30 overflow-x-hidden">
@@ -136,7 +140,7 @@ export default function TeacherProfileClient({ tutor }: { tutor: any }) {
           </div>
 
           <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
-            {reviews.length > 0 ? reviews.map((rev: any) => (
+            {currentReviews.length > 0 ? currentReviews.map((rev: any) => (
               <div key={rev.id} className="break-inside-avoid p-8 bg-[#0A0A0B] border border-white/10 rounded-[2.5rem] hover:border-purple-500/30 transition-all">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="size-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-500">
@@ -159,6 +163,34 @@ export default function TeacherProfileClient({ tutor }: { tutor: any }) {
                 <p className="col-span-full text-center text-gray-600">No reviews yet.</p>
             )}
           </div>
+
+          {allReviews.length > 0 && (
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-12 p-6 bg-[#0A0A0B] border border-white/10 rounded-3xl gap-4">
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="size-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-white/10 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                  Page <span className="text-white">{page}</span> of {maxPage}
+                </div>
+                <button
+                  onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
+                  disabled={page === maxPage}
+                  className="size-10 flex items-center justify-center rounded-xl bg-zinc-900 border border-white/10 hover:bg-white/10 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+              <span className="text-zinc-400 text-xs font-medium uppercase tracking-widest">
+                Total Reviews: <span className="text-purple-500">{allReviews.length}</span>
+              </span>
+            </div>
+          )}
+
         </div>
       </section>
 

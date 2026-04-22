@@ -54,7 +54,7 @@ export default function Footer() {
       {/* Decorative Background Glow */}
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/5 blur-[120px] pointer-events-none" />
 
-      <div className="container mx-auto px-4 py-20 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-20 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           
           {/* Left Side: Contact Info */}

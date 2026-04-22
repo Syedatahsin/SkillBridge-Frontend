@@ -4,6 +4,7 @@ import { ArrowRight, ArrowUpRight, Sparkles, BookOpen, Calendar } from "lucide-r
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface Hero1Props {
   badge?: string;
@@ -32,40 +33,66 @@ const Hero1 = ({
   className,
 }: Hero1Props) => {
   return (
-    <section className={cn("relative overflow-hidden bg-background py-24 lg:py-32 transition-colors duration-300", className)}>
+    <section className={cn("relative overflow-hidden bg-background py-16 sm:py-24 lg:py-32 transition-colors duration-300", className)}>
       {/* --- Elegant Background Accents --- */}
       <div className="absolute -left-[10%] top-0 h-[500px] w-[500px] rounded-full bg-indigo-600/20 blur-[120px]" />
       <div className="absolute -right-[10%] bottom-0 h-[500px] w-[500px] rounded-full bg-purple-600/20 blur-[120px]" />
 
-      <div className="container relative z-10 mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 relative z-10">
         <div className="grid items-center gap-12 lg:grid-cols-2">
           
           {/* --- Content Column --- */}
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+            className="flex flex-col items-center text-center lg:items-start lg:text-left"
+          >
             {badge && (
-              <Badge 
-                variant="outline" 
-                className="mb-6 border-border/10 bg-background/60 px-4 py-1 text-primary backdrop-blur-md transition-all hover:bg-background/80"
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
               >
-                <Sparkles className="mr-2 size-3" />
-                {badge}
-                <ArrowUpRight className="ml-2 size-3" />
-              </Badge>
+                <Badge 
+                  variant="outline" 
+                  className="mb-6 border-border/10 bg-background/60 px-4 py-1 text-primary backdrop-blur-md transition-all hover:bg-background/80"
+                >
+                  <Sparkles className="mr-2 size-3" />
+                  {badge}
+                  <ArrowUpRight className="ml-2 size-3" />
+                </Badge>
+              </motion.div>
             )}
             
-            <h1 className="mb-6 text-pretty text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-7xl">
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.7, ease: [0.21, 0.47, 0.32, 0.98] }}
+              className="mb-6 text-pretty text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-7xl"
+            >
               {heading.split(" ").map((word, i) => (
                 <span key={i} className={i > 3 ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent" : "text-foreground"}>
                   {word}{" "}
                 </span>
               ))}
-            </h1>
+            </motion.h1>
 
-            <p className="mb-8 max-w-xl text-lg leading-relaxed text-muted-foreground lg:text-xl">
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.6 }}
+              className="mb-8 max-w-xl text-lg leading-relaxed text-muted-foreground lg:text-xl"
+            >
               {description}
-            </p>
+            </motion.p>
 
-            <div className="flex w-full flex-col gap-4 sm:flex-row lg:justify-start">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="flex w-full flex-col gap-4 sm:flex-row lg:justify-start"
+            >
               {buttons.primary && (
                 <Button 
                   asChild 
@@ -77,12 +104,16 @@ const Hero1 = ({
                   </a>
                 </Button>
               )}
-              
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* --- Image Column --- */}
-          <div className="relative group lg:ml-auto">
+          <motion.div
+            initial={{ opacity: 0, x: 40, scale: 0.97 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: [0.21, 0.47, 0.32, 0.98] }}
+            className="relative group lg:ml-auto"
+          >
             {/* Soft Glow behind image */}
             <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-indigo-500 to-purple-600 opacity-20 blur-xl transition duration-1000 group-hover:opacity-40" />
             
@@ -95,7 +126,12 @@ const Hero1 = ({
               
               {/* Floating Overlay Info Cards */}
               <div className="absolute bottom-6 left-6 right-6 hidden gap-4 sm:flex">
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-lg">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.5 }}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-lg"
+                >
                   <div className="rounded-lg bg-indigo-500/20 p-2">
                     <BookOpen className="size-5 text-indigo-400" />
                   </div>
@@ -103,9 +139,14 @@ const Hero1 = ({
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Subjects</p>
                     <p className="text-sm font-bold text-foreground">Explore Vast Categories</p>
                   </div>
-                </div>
+                </motion.div>
                 
-                <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-lg">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1, duration: 0.5 }}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/60 p-4 backdrop-blur-lg"
+                >
                   <div className="rounded-lg bg-purple-500/20 p-2">
                     <Calendar className="size-5 text-purple-400" />
                   </div>
@@ -113,10 +154,10 @@ const Hero1 = ({
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Scheduling</p>
                     <p className="text-sm font-bold text-foreground">24/7 Availability</p>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </div>

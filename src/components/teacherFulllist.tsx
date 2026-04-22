@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { 
-  User, ArrowLeft, Loader2, Mail, Calendar, ChevronRight, Star 
+  User, ArrowLeft, Loader2, Mail, Calendar, ChevronRight, ChevronLeft, Star 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,8 @@ import { authClient } from "@/lib/auth-client";
 export default function AllTutorsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<any>(null);
   
   // Cast session to 'any' to bypass the missing 'role' property error in TS
   const { data: session } = authClient.useSession() as any; 
@@ -22,10 +24,11 @@ export default function AllTutorsPage() {
   const fetchFullList = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/alltutor?limit=0`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/alltutor?page=${page}&limit=8`);
       const json = await res.json();
       if (json.success) {
         setData(json.data);
+        if (json.meta) setMeta(json.meta);
       }
     } catch (error) {
       console.error("Error fetching full teacher list:", error);
@@ -54,7 +57,19 @@ export default function AllTutorsPage() {
 
   useEffect(() => {
     fetchFullList();
-  }, []);
+  }, [page]);
+
+  const handleNext = () => {
+    if (meta && page < meta.lastPage) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8 font-sans transition-colors duration-300">
@@ -184,11 +199,37 @@ export default function AllTutorsPage() {
           </div>
           
           <div className="p-8 border-t border-border/50 bg-muted/5 flex justify-between items-center">
-            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
-              Directory End
-            </span>
+            {meta && meta.lastPage > 0 ? (
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrev}
+                  disabled={page === 1}
+                  className="rounded-xl border-border/50 h-8 w-8 hover:bg-muted/50"
+                >
+                  <ChevronLeft size={16} />
+                </Button>
+                <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
+                  Page <span className="text-foreground">{page}</span> of {meta.lastPage}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNext}
+                  disabled={page === meta.lastPage}
+                  className="rounded-xl border-border/50 h-8 w-8 hover:bg-muted/50"
+                >
+                  <ChevronRight size={16} />
+                </Button>
+              </div>
+            ) : (
+                <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">
+                  Directory End
+                </span>
+            )}
             <span className="text-zinc-400 text-xs font-medium">
-              Total Records: {data.length}
+              {meta ? `Total Records: ${meta.total}` : `Total Records: ${data.length}`}
             </span>
           </div>
         </div>

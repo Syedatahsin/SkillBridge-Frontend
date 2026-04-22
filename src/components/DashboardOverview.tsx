@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   AreaChart,
   Area,
@@ -80,8 +81,14 @@ export default function DashboardOverview({ userId, role }: OverviewProps) {
   const chartColor = role === "TUTOR" ? "#10b981" : "#a855f7";
 
   return (
-    <div className="w-full bg-card/40 backdrop-blur-md border border-border/10 p-8 rounded-[2.5rem] shadow-2xl transition-colors duration-300">
-      <div className="flex items-center justify-between mb-8">
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
+      className="w-full bg-card/40 backdrop-blur-md border border-border/10 p-5 sm:p-8 rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl transition-colors duration-300"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6 sm:mb-8">
         <div>
           <h3 className="text-xl font-black uppercase tracking-tight text-foreground">
             Session Activity
@@ -163,6 +170,6 @@ export default function DashboardOverview({ userId, role }: OverviewProps) {
           </ResponsiveContainer>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

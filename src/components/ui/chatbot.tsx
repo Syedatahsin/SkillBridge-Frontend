@@ -10,7 +10,7 @@ const AIChatbot = () => {
   const [chatHistory, setChatHistory] = useState([
     { role: "bot", text: "Beep boop! 🤖 Hi! I'm SkillBot. How can I help you learn today?" }
   ]);
-  
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to the latest message
@@ -30,7 +30,6 @@ const AIChatbot = () => {
     setIsLoading(true);
 
     try {
-      // Replace with your actual Express URL
       const response = await fetch(process.env.NEXT_PUBLIC_BACKEND_URL + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,7 +63,7 @@ const AIChatbot = () => {
             <div className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-5 text-white flex justify-between items-center">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md">
-                   <Bot size={24} />
+                  <Bot size={24} />
                 </div>
                 <div>
                   <span className="font-bold text-lg block leading-none">SkillBot</span>
@@ -72,7 +71,7 @@ const AIChatbot = () => {
                 </div>
               </div>
               <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-1 rounded-full">
-                <X size={20}/>
+                <X size={20} />
               </button>
             </div>
 
@@ -85,15 +84,14 @@ const AIChatbot = () => {
                   key={index}
                   className={`flex ${chat.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <div className={`p-3 rounded-2xl max-w-[85%] text-sm ${
-                    chat.role === "user" ? "bg-indigo-600 text-white rounded-tr-none shadow-md" 
+                  <div className={`p-3 rounded-2xl max-w-[85%] text-sm ${chat.role === "user" ? "bg-indigo-600 text-white rounded-tr-none shadow-md"
                     : "bg-background border border-border/50 text-foreground rounded-tl-none shadow-sm"
-                  }`}>
+                    }`}>
                     {chat.text}
                   </div>
                 </motion.div>
               ))}
-              
+
               {/* Animated Typing Indicator */}
               {isLoading && (
                 <div className="flex gap-1 p-2 bg-background w-fit rounded-xl border border-border/50 shadow-sm">
@@ -114,7 +112,7 @@ const AIChatbot = () => {
                 placeholder="Ask SkillBot..."
                 className="flex-1 bg-background border border-border rounded-2xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-400 text-foreground transition-colors"
               />
-              <motion.button 
+              <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={handleSendMessage}
                 disabled={isLoading}
@@ -132,15 +130,15 @@ const AIChatbot = () => {
         whileHover={{ scale: 1.1, rotate: 2 }}
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white w-16 h-16 rounded-[1.5rem] shadow-2xl flex items-center justify-center relative"
+        className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white w-12 h-12 sm:w-16 sm:h-16 rounded-[1.2rem] sm:rounded-[1.5rem] shadow-2xl flex items-center justify-center relative animate-float"
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
-            <motion.div key="c" initial={{rotate:-90}} animate={{rotate:0}} exit={{rotate:90}}><X size={30} /></motion.div>
+            <motion.div key="c" initial={{ rotate: -90 }} animate={{ rotate: 0 }} exit={{ rotate: 90 }}><X size={30} /></motion.div>
           ) : (
-            <motion.div key="o" initial={{scale:0}} animate={{scale:1}} className="flex items-center justify-center">
+            <motion.div key="o" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center justify-center">
               <Bot size={32} />
-              <motion.div animate={{opacity:[0,1,0]}} transition={{duration:2, repeat:Infinity}} className="absolute -top-1 -right-1">
+              <motion.div animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity }} className="absolute -top-1 -right-1">
                 <Sparkles size={16} className="text-yellow-300 fill-yellow-300" />
               </motion.div>
             </motion.div>

@@ -29,12 +29,12 @@ const Price = ({ className, children, onSale }: { className?: string; children: 
 
 const PriceValue = ({ price, variant = "regular", className }: { price?: number; variant?: "regular" | "sale"; className?: string }) => {
   if (price == null) return null;
-  const formatted = new Intl.NumberFormat("en-US", { 
-    style: "currency", 
+  const formatted = new Intl.NumberFormat("en-US", {
+    style: "currency",
     currency: "USD",
-    maximumFractionDigits: 0 
+    maximumFractionDigits: 0
   }).format(price);
-  
+
   return (
     <span className={cn(variant === "regular" ? "text-white" : "text-purple-400 font-bold", className)}>
       {formatted}
@@ -46,18 +46,22 @@ export default function FeaturedMasters() {
   const [mentors, setMentors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [page, setPage] = useState(1);
+  const [meta, setMeta] = useState<any>(null);
 
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
         setLoading(true);
-        // Ensure this matches your backend PORT
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/public/featured`);
-        
+        // Fetch with page and limit=4
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/tutor/public/featured?page=${page}&limit=4`);
+
         if (!response.ok) throw new Error("Failed to fetch");
-        
-        const data = await response.json();
+
+        const result = await response.json();
+        const data = Array.isArray(result) ? result : result.data;
         setMentors(Array.isArray(data) ? data : []);
+        if (result.meta) setMeta(result.meta);
       } catch (err) {
         console.error("Featured Fetch Error:", err);
         setError(true);
@@ -66,9 +70,23 @@ export default function FeaturedMasters() {
       }
     };
     fetchFeatured();
-  }, []);
+  }, [page]);
 
-  if (loading) {
+  const handleNext = () => {
+    if (meta && page < meta.lastPage) {
+      setPage(prev => prev + 1);
+      window.scrollTo({ top: document.getElementById('featured-section')?.offsetTop ? document.getElementById('featured-section')!.offsetTop - 100 : 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePrev = () => {
+    if (page > 1) {
+      setPage(prev => prev - 1);
+      window.scrollTo({ top: document.getElementById('featured-section')?.offsetTop ? document.getElementById('featured-section')!.offsetTop - 100 : 0, behavior: 'smooth' });
+    }
+  };
+
+  if (loading && mentors.length === 0) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center bg-background text-foreground transition-colors duration-300">
         <Loader2 className="animate-spin size-10 text-purple-500 mb-4" />
@@ -88,12 +106,12 @@ export default function FeaturedMasters() {
   }
 
   return (
-    <section className="bg-background py-24 text-foreground relative overflow-hidden transition-colors duration-300">
+    <section id="featured-section" className="bg-background py-24 text-foreground relative overflow-hidden transition-colors duration-300">
       {/* Dynamic Ambient Glows */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] pointer-events-none" />
 
-      <div className="container mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
         {/* Section Header */}
         <div className="mb-16 flex flex-col items-center text-center space-y-4">
           <Badge className="bg-muted/20 text-purple-400 border-border/10 px-6 py-1 tracking-widest uppercase text-[10px] hover:bg-muted/30 transition-colors">
@@ -108,25 +126,25 @@ export default function FeaturedMasters() {
         </div>
 
         {/* 10 Card Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-8">
+        <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 transition-opacity duration-500", loading ? "opacity-50" : "opacity-100")}>
           {mentors.length > 0 ? (
             mentors.map((teacher) => {
               const avgRating = calculateRating(teacher.reviews);
               const mainCategory = teacher.categories?.[0]?.category?.name || "Expert Master";
-              
+
               // CLOUDINARY LOGIC: Check if teacher.user.image exists
-              const profileImage = teacher.user?.image && teacher.user.image !== "" 
-                ? teacher.user.image 
+              const profileImage = teacher.user?.image && teacher.user.image !== ""
+                ? teacher.user.image
                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.user?.name || 'Tutor')}&background=random&color=fff&size=512`;
 
               return (
                 <Card key={teacher.id} className="group relative border-border/50 bg-card overflow-hidden rounded-[2.5rem] transition-all duration-500 hover:border-purple-500/40 hover:shadow-[0_0_40px_rgba(168,85,247,0.1)]">
                   <CardHeader className="p-0 relative overflow-hidden">
                     <AspectRatio ratio={0.8} className="bg-neutral-900">
-                      <img 
-                        src={profileImage} 
-                        alt={teacher.user?.name} 
-                        className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100" 
+                      <img
+                        src={profileImage}
+                        alt={teacher.user?.name}
+                        className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.user?.name || 'T')}&background=6366f1&color=fff`;
                         }}
@@ -134,7 +152,7 @@ export default function FeaturedMasters() {
                       {/* Gradient Scrim */}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-80" />
                     </AspectRatio>
-                    
+
                     {/* Floating Rating Badge */}
                     <div className="absolute top-5 right-5 z-20">
                       <div className="flex items-center gap-1.5 bg-background/40 backdrop-blur-xl px-3 py-1.5 rounded-full border border-border/50 shadow-2xl">
@@ -164,8 +182,8 @@ export default function FeaturedMasters() {
                         <span className="text-[10px] text-muted-foreground/60 uppercase font-black tracking-tighter">Rate per Hour</span>
                         <PriceValue price={teacher.pricePerHour} className="text-2xl font-black text-purple-400" />
                       </Price>
-                      
-                      <Link 
+
+                      <Link
                         href={`/tutorsingleprofile/${teacher.id}`}
                         className="bg-muted/20 p-3 rounded-2xl group-hover:bg-purple-600 transition-all duration-500 group-hover:scale-110 group-hover:rotate-[360deg]"
                       >
@@ -184,8 +202,37 @@ export default function FeaturedMasters() {
           )}
         </div>
 
-        {/* View All Button */}
-        
+        {/* PAGINATION CONTROLS */}
+        {meta && meta.lastPage > 0 && (
+          <div className="mt-16 flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrev}
+              disabled={page === 1}
+              className="rounded-2xl border-border/50 bg-card/50 backdrop-blur-xl hover:bg-muted/50 disabled:opacity-30 h-12 w-12"
+            >
+              <ArrowRight className="size-5 rotate-180" />
+            </Button>
+
+            <div className="flex items-center gap-2 bg-muted/20 px-4 py-2 rounded-2xl border border-border/50">
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">Page</span>
+              <span className="text-sm font-black text-foreground">{page}</span>
+              <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">of</span>
+              <span className="text-sm font-black text-foreground">{meta.lastPage}</span>
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNext}
+              disabled={page === meta.lastPage}
+              className="rounded-2xl border-border/50 bg-card/50 backdrop-blur-xl hover:bg-muted/50 disabled:opacity-30 h-12 w-12"
+            >
+              <ArrowRight className="size-5" />
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

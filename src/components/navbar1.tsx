@@ -9,7 +9,7 @@ import {
   Search, ChevronDown, LayoutGrid, User,
   Loader2, Star, LogOut, UserCircle,
   ShieldCheck, GraduationCap, SlidersHorizontal,
-  X, UserPlus, Settings
+  X, UserPlus, Settings, Menu
 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
@@ -23,6 +23,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { SECTION_DATA } from "@/components/sidebar";
 
 interface NavbarProps {
   role?: "public" | "student" | "teacher" | "admin" | "TUTOR" | "STUDENT" | string;
@@ -122,17 +130,15 @@ export default function SkillBridgeNavbar({ role = "public", userId }: NavbarPro
             </span>
           </Link>
 
-          {/* PUBLIC NAV LINKS */}
-          {isPublic && (
-            <div className="flex items-center gap-6 shrink-0 ml-4">
-              <Link href="/about" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors">
-                About
-              </Link>
-              <Link href="/contact" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors">
-                Contact
-              </Link>
-            </div>
-          )}
+          {/* NAV LINKS (Visible for all roles) */}
+          <div className="flex items-center gap-6 shrink-0 ml-4">
+            <Link href="/about" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors">
+              About Us
+            </Link>
+            <Link href="/contact" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors">
+              Contact
+            </Link>
+          </div>
 
           {/* SEARCH BAR (flex-1 = takes all remaining space) */}
           {showSearch && (
@@ -287,24 +293,86 @@ export default function SkillBridgeNavbar({ role = "public", userId }: NavbarPro
                 <LayoutGrid className="size-5 text-white" />
               </div>
               <span className="text-lg font-black italic tracking-tighter uppercase">
-                SKILL<span className="text-purple-500 hidden xs:inline">BRIDGE</span>
+                SKILL<span className="text-purple-500">BRIDGE</span>
               </span>
             </Link>
 
             {/* Right side: links + auth */}
             <div className="flex items-center gap-3">
               <ThemeToggle />
-              {/* About (public only) */}
-              {isPublic && (
-                <>
-                  <Link href="/about" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors">
-                    About
-                  </Link>
-                  <Link href="/contact" className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors">
-                    Contact
-                  </Link>
-                </>
-              )}
+              
+              {/* MOBILE MENU (Drawer) */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden text-muted-foreground hover:text-foreground">
+                    <Menu className="size-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="bg-background/95 backdrop-blur-xl border-l border-border/50 p-0 w-80">
+                  <SheetHeader className="p-6 border-b border-border/10">
+                    <SheetTitle className="flex items-center gap-2.5">
+                      <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2 rounded-xl">
+                        <LayoutGrid className="size-4 text-white" />
+                      </div>
+                      <span className="text-lg font-black italic tracking-tighter uppercase">
+                        SKILL<span className="text-purple-500">BRIDGE</span>
+                      </span>
+                    </SheetTitle>
+                  </SheetHeader>
+                  
+                  <div className="flex flex-col h-full overflow-y-auto p-6">
+                    {/* General Links */}
+                    <div className="mb-8">
+                      <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-4">
+                        Navigate
+                      </h3>
+                      <div className="flex flex-col gap-4">
+                        <Link href="/about" className="text-sm font-bold hover:text-purple-500 transition-colors">
+                          About Us
+                        </Link>
+                        <Link href="/contact" className="text-sm font-bold hover:text-purple-500 transition-colors">
+                          Contact
+                        </Link>
+                      </div>
+                    </div>
+
+                    {/* Dashboard Options (if role is detected) */}
+                    {role !== "public" && (
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2">
+                          {role} Console
+                        </h3>
+                        {SECTION_DATA[role.toLowerCase() === "tutor" ? "teacher" : role.toLowerCase()]?.map((option) => {
+                          const Icon = option.icon;
+                          return (
+                            <Link
+                              key={option.label}
+                              href={option.href}
+                              className="group relative p-3 rounded-2xl flex items-center gap-4 hover:bg-muted/50 transition-all border border-transparent hover:border-border/50"
+                            >
+                              <div className="p-2 rounded-xl bg-muted text-muted-foreground group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                <Icon size={16} />
+                              </div>
+                              <div className="flex flex-col">
+                                <span className="text-sm font-bold leading-tight">{option.label}</span>
+                                <span className="text-[10px] text-muted-foreground line-clamp-1">{option.description}</span>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Footer decoration in drawer */}
+                    <div className="mt-auto pt-10">
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/50">
+                        <p className="text-[9px] font-black uppercase tracking-tighter text-muted-foreground mb-1">Status</p>
+                        <p className="text-xs font-black italic text-foreground uppercase">Ultra Fluid Mode</p>
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
 
               {isPublic ? (
                 <>

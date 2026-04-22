@@ -6,7 +6,7 @@ import { authClient } from "@/lib/auth-client";
 import { 
   User as UserIcon, Mail, ShieldCheck, GraduationCap, 
   Loader2, MessageSquare, 
-  CalendarDays
+  CalendarDays, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -32,6 +32,8 @@ export default function UnifiedProfile() {
   const { data: session, isPending } = authClient.useSession();
   const [tutorData, setTutorData] = useState<TutorProfile | null>(null);
   const [loadingExtra, setLoadingExtra] = useState(false);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 3;
 
   // Cast to any to bypass the 'role' property error
   const user = session?.user as any; 
@@ -115,12 +117,38 @@ export default function UnifiedProfile() {
               </h3>
               {hasReviews ? (
                 <div className="space-y-4">
-                   {tutorData.reviews.map((rev, idx) => (
+                   {tutorData.reviews.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE).map((rev, idx) => (
                     <div key={idx} className="p-4 bg-muted/20 rounded-2xl border border-border/50">
                       <p className="text-foreground font-bold">{rev.student?.name || "Anonymous"}</p>
                       <p className="text-muted-foreground text-sm italic">"{rev.comment}"</p>
                     </div>
                   ))}
+
+                  {/* Pagination Controls */}
+                  {tutorData.reviews.length > ITEMS_PER_PAGE && (
+                    <div className="flex justify-between items-center mt-6 p-4 bg-muted/10 border border-border/50 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setPage(p => Math.max(1, p - 1))}
+                          disabled={page === 1}
+                          className="size-8 flex items-center justify-center rounded-lg bg-card border border-border/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-foreground"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                          Page <span className="text-foreground">{page}</span> of {Math.ceil(tutorData.reviews.length / ITEMS_PER_PAGE)}
+                        </div>
+                        <button
+                          onClick={() => setPage(p => Math.min(Math.ceil(tutorData.reviews.length / ITEMS_PER_PAGE), p + 1))}
+                          disabled={page === Math.ceil(tutorData.reviews.length / ITEMS_PER_PAGE)}
+                          className="size-8 flex items-center justify-center rounded-lg bg-card border border-border/50 hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-foreground"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               ) : (
                 <p className="text-muted-foreground/40 text-xs italic">No reviews yet.</p>

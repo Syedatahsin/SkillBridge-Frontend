@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Star, ArrowRight, Loader2 } from "lucide-react";
+import { Star, ArrowRight, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { formatDistanceToNow } from "date-fns";
@@ -10,13 +10,14 @@ import { formatDistanceToNow } from "date-fns";
 export const ReviewSection = ({ userId }: { userId: string }) => {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchReviews = async () => {
       try {
         // We use the same stats endpoint. 
         // Your backend Service handles the OR logic to find the profile!
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews/stats/${userId}`);
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reviews/stats/${userId}?page=${page}&limit=2`);
         const json = await res.json();
         setData(json);
       } catch (err) {
@@ -27,7 +28,7 @@ export const ReviewSection = ({ userId }: { userId: string }) => {
     };
 
     if (userId) fetchReviews();
-  }, [userId]);
+  }, [userId, page]);
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center py-20 border border-white/5 rounded-3xl bg-white/5">
@@ -104,6 +105,38 @@ export const ReviewSection = ({ userId }: { userId: string }) => {
         ) : (
           <div className="h-full min-h-[200px] flex items-center justify-center border border-dashed border-white/10 rounded-[2.5rem]">
             <p className="text-gray-600 font-black uppercase text-[10px] tracking-[0.3em]">No student reviews yet</p>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {data.meta && data.meta.lastPage > 0 && data.latestReviews && data.latestReviews.length > 0 && (
+          <div className="flex justify-between items-center mt-6 p-6 bg-[#0A0A0B] border border-white/10 rounded-3xl">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="bg-zinc-900 border-white/10 hover:bg-white/10 hover:text-white"
+              >
+                <ChevronLeft size={16} />
+              </Button>
+              <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                Page <span className="text-white">{page}</span> of {data.meta.lastPage}
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setPage((p) => Math.min(data.meta.lastPage, p + 1))}
+                disabled={page === data.meta.lastPage}
+                className="bg-zinc-900 border-white/10 hover:bg-white/10 hover:text-white"
+              >
+                <ChevronRight size={16} />
+              </Button>
+            </div>
+            <span className="text-zinc-400 text-xs font-medium">
+              Total Reviews: <span className="text-purple-500">{data.meta.total}</span>
+            </span>
           </div>
         )}
       </div>

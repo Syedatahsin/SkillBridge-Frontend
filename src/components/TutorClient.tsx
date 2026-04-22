@@ -130,26 +130,43 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
   };
 
   const handleBooking = async (availabilityId: string) => {
-    if (!initialSession?.user?.id) return router.push("/login");
+    // 1. USE REACTIVE SESSION: This ensures we have the latest ID even if they just logged in
+    const activeUserId = session?.user?.id || initialSession?.user?.id;
+    
+    if (!activeUserId) {
+      toast.error("Please log in to reserve a spot");
+      return router.push("/login");
+    }
+
     setLoadingSlotId(availabilityId);
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/bookings/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          studentId: initialSession.user.id,
+          studentId: activeUserId,
           tutorId: tutorData.id,
           availabilityId: availabilityId
         }),
       });
+
       const result = await response.json();
-      if (result.url) window.location.href = result.url;
-      else {
+
+      // 2. CHECK FOR RESPONSE SUCCESS
+      if (!response.ok) {
+        throw new Error(result.message || "Booking failed");
+      }
+
+      // 3. HANDLE REDIRECT OR SUCCESS
+      if (result.url) {
+        window.location.href = result.url;
+      } else {
         toast.success("Spot Reserved!");
         router.refresh();
       }
-    } catch (err) {
-      toast.error("Booking failed");
+    } catch (err: any) {
+      console.error("Booking Error:", err);
+      toast.error(err.message || "Something went wrong. Please try again.");
     } finally {
       setLoadingSlotId(null);
     }
@@ -254,10 +271,18 @@ export default function TutorClient({ tutorData, initialSession }: TutorClientPr
               </div>
               <Button
                 onClick={() => handleBooking(slot.id)}
-                disabled={slot.isBooked || isCurrentlyBanned}
+                disabled={slot.isBooked || isCurrentlyBanned || loadingSlotId === slot.id}
                 className="w-full h-14 rounded-2xl font-black uppercase tracking-widest bg-white text-black hover:bg-purple-600 hover:text-white"
               >
-                {slot.isBooked ? "Booked" : isCurrentlyBanned ? "Suspended" : "Reserve Spot"}
+                {loadingSlotId === slot.id ? (
+                  <Loader2 className="animate-spin" />
+                ) : slot.isBooked ? (
+                  "Booked"
+                ) : isCurrentlyBanned ? (
+                  "Suspended"
+                ) : (
+                  "Reserve Spot"
+                )}
               </Button>
             </div>
           ))}

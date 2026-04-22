@@ -1,98 +1,100 @@
-# 🌟 SkillBridge
+# 🎓 SkillBridge
 
-> **Bridging the gap between knowledge and expertise.** <br>
-> SkillBridge is a premium, high-performance platform connecting passionate students with professional mentors and educators for seamless 1-on-1 online learning.
+> **Bridging the gap between knowledge and expertise.**
 
-![SkillBridge Banner](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2000&auto=format&fit=crop)
+**SkillBridge** is a premium, full-stack education platform designed to bridge the gap between ambitious students and expert mentors. Whether you're looking to master a new skill or share your expertise, SkillBridge provides a seamless, AI-enhanced environment for personalized learning.
 
----
+Built with a focus on speed, security, and a superior user experience, SkillBridge features instant booking, secure automated payments, and cutting-edge AI tools for automated quiz generation and lesson summarization.
 
-## 🚀 Overview
-
-SkillBridge is built with a modern, scalable web architecture designed to deliver an unparalleled user experience. It features robust role-based access control, real-time scheduling mechanisms, secure payments, and interactive data visualization—all wrapped in a sleek, glassmorphic UI powered by cutting-edge animations.
-
-### ✨ Key Features
-
-- **🛡️ Tri-Role Architecture**: Dedicated, secure environments for **Students**, **Teachers**, and **Admins**.
-- **📅 Smart Booking Engine**: Conflict-free session reservations with real-time slot locking, ensuring no double bookings.
-- **📊 Interactive Analytics Dashboards**: Visual data representations using Recharts tracking revenue, class momentum, and demographic engagement.
-- **💬 Verified Review System**: Authentic feedback and global rating aggregations calculated purely from confirmed sessions.
-- **🎨 State-of-the-Art Aesthetic**: Deep Tailwind CSS integration featuring fluid container layouts, vibrant dark/light modes, and Framer Motion micro-animations.
-- **🔒 Role-Based Access Control (RBAC)**: Secure access gating using `better-auth` combined with strict backend and frontend middleware.
 
 ---
 
-## 🛠️ Technology Stack
+## 📸 Showcase
 
-**SkillBridge Frontend** uses the latest, most performant frameworks available in the React ecosystem:
+<p align="center">
+  <img src="https://kommodo.ai/i/1zRItg2jUprp8KXk177f" alt="SkillBridge Showcase" width="100%" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+</p>
 
-- **Framework**: [Next.js 16 (App Router + Turbopack)](https://nextjs.org/)
-- **Core Library**: [React 19](https://react.dev/)
-- **Styling**: [TailwindCSS v4](https://tailwindcss.com/) & [Shadcn UI](https://ui.shadcn.com/)
-- **Animations**: [Framer Motion](https://www.framer.com/motion/)
-- **Charting Engine**: [Recharts](https://recharts.org/)
-- **Authentication**: [Better-Auth](https://github.com/better-auth/better-auth)
-- **Forms & Validation**: TanStack Form & Zod
-- **Icons**: Lucide React & React Icons
+<!-- 
+### 📸 More Screenshots
 
----
+| Home Dashboard | Session Booking | AI Quiz Generation |
+| :---: | :---: | :---: |
+| ![Dashboard Placeholder](https://via.placeholder.com/400x250.png?text=Dashboard) | ![Booking Placeholder](https://via.placeholder.com/400x250.png?text=Session+Booking) | ![AI Quiz Placeholder](https://via.placeholder.com/400x250.png?text=AI+Quiz+Generator) |
 
-## 📂 Project Structure
-
-```text
-src/
-├── app/
-│   ├── (dashboard)/        # Protected application layers
-│   │   ├── admin/          # Global management & analytics override
-│   │   ├── student/        # Learning and reservation hub
-│   │   ├── teacher/        # Schedule management & revenue tracking
-│   │   └── (public)/       # Open catalog: Find Tutors, About, Contact
-│   ├── login/              # Authentication flows
-│   └── globals.css         # Global tailwind imports & design tokens
-├── components/
-│   ├── ui/                 # Reusable Shadcn base primitives
-│   ├── sessionglasscard/   # High-fidelity dashboard layouts 
-│   ├── TutorClient/        # Unified Mentor profile representations
-│   └── DashboardOverview/  # Complex charting & metric components
-└── lib/
-    ├── auth-client.ts      # Better-Auth integration
-    └── utils.ts            # Tailwind merging & shared utilities
-```
+| Tutor Profile | Admin Panel | Chatbot |
+| :---: | :---: | :---: |
+| ![Profile Placeholder](https://via.placeholder.com/400x250.png?text=Tutor+Profile) | ![Admin Placeholder](https://via.placeholder.com/400x250.png?text=Admin+Panel) | ![Chatbot Placeholder](https://via.placeholder.com/400x250.png?text=AI+Chatbot) |
+-->
 
 ---
 
-## 🎯 Role Capabilities
+## ✨ Key Features
 
-### 🧑‍🎓 Students
-- Browse the public directory of verified, professional Tutors.
-- Instantly verify availability and reserve calendar slots.
-- Manage upcoming classes with embedded meeting links.
-- Submit verified reviews and rate learning experiences.
-
-### 👨‍🏫 Teachers
-- Manage calendar availabilities using intuitive scheduling interfaces.
-- Approve, review, and mark finalized classes as "Completed".
-- Monitor lifetime earnings and visualize momentum via the Revenue chart.
-- Showcase a dynamic public profile highlighting expertise, pricing, and authentic testimonials.
-
-### 👨‍💻 Administrators
-- Oversee total platform analytics (Global user demographic splits).
-- Promote standout educators with the "Featured" profile flag.
-- Enforce community guidelines via active moderation tools (Ban/Unban users).
+- **📅 1:1 Session Booking:** Instant, real-time booking based on teacher availability.
+- **🤖 AI-Powered Chatbot:** 24/7 intelligent platform support and learning guidance.
+- **💳 Stripe Integration:** Secure, one-click payments with automated booking confirmation.
+- **🧠 AI Quiz Generator:** Automatically generates interactive assessments from session transcripts.
+- **📝 AI Smart Notes:** Transforms live lessons into structured revision notes and summaries.
+- **🔍 Advanced Discovery:** Multi-criteria search and smart filters to find your ideal mentor.
+- **🛡️ Secure Role Access:** Specialized dashboards for Students, Teachers, and Administrators.
+- **⭐ Verified Reviews:** A transparent rating system to ensure educational excellence.
+- **🌙 Cinematic UI:** Beautiful Dark/Light mode support with premium Framer Motion animations.
+- **📱 Fully Responsive:** Optimized for a flawless experience across all devices and screen sizes.
+- **⚡ High Performance:** Blazing-fast load times using Next.js App Router and server-side optimizations.
 
 ---
 
-## ⚙️ Local Development
+## 🛠️ Built With
+
+### Frontend
+- **Next.js 15 (App Router)** - React framework for production.
+- **TypeScript** - Type safety and improved developer experience.
+- **Tailwind CSS** - Modern, utility-first styling.
+- **shadcn/ui** - Reusable, accessible UI components.
+- **Framer Motion** - Cinematic animations and transitions.
+
+### Backend & Infrastructure
+- **Node.js & Express** - Robust backend architecture.
+- **Prisma ORM** - Modern database management and type-safe queries.
+- **Better Auth** - Secure, scalable authentication solution.
+- **Gemini AI** - Powering smart notes and quiz generation.
+- **Stripe** - Industry-standard payment processing.
+
+---
+
+## 📚 What challenged me most
+
+Building SkillBridge came with significant technical hurdles, primarily:
+- Integrating complex AI APIs for real-time quiz and summary generation.
+- Implementing robust Stripe payments with accurate webhooks to handle real-world transactions.
+- Building a scalable application architecture to handle separate roles efficiently.
+- Managing server and client components without compromising performance.
+
+---
+
+## ⏳ Currently Polishing
+
+Even though the platform is functional, I am actively working on:
+- **Making the product faster and smoother** ⚡
+- **Adding a more complex role-based system** 👥
+- **Improving the UI to feel cleaner and more intuitive** 🎨
+
+---
+
+## 🚀 How to Use It (Getting Started)
 
 ### Prerequisites
-- Node.js (v20+ recommended)
-- The accompanying Backend API Repository running locally on port `5000` (or linked via Vercel).
 
-### Installation & Setup
+You will need the following installed:
+- [Node.js](https://nodejs.org/en/) (v20+ recommended)
+- The backend API repository set up and running on port `5000` (or linked via environment variables).
+
+### Installation Steps
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository_url>
+   git clone <https://github.com/Syedatahsin/SkillBridge-Frontend>
    cd skillbridge-clean
    ```
 
@@ -101,23 +103,25 @@ src/
    npm install
    ```
 
-3. **Environment Setup:**
-   Create a `.env` file in the root directory:
+3. **Configure Environment Variables:**
+   Create a `.env` file in the root of your project and configure it. For example:
    ```env
    NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_public_key
    ```
 
-4. **Start the development server:**
+4. **Run the Development Server:**
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. **Open in Browser:**
+   Navigate to [http://localhost:3000](http://localhost:3000) to view the application in action.
 
 ---
 
-## 🤝 Contributing
-Features and updates are implemented using a strict component-first methodology. Ensure that any new UI elements align with the global dark-mode design system and Tailwind styling conventions before submitting improvements.
+## 💬 Feedback & Contributions
 
-## 📄 License
-Designed and Developed by **Syeda Anika Tahsin**. All rights reserved.
+I’d genuinely love your feedback and suggestions for improvement! Whether it’s about the UI, features, user experience, or anything you think could make it better, please feel free to open an issue or reach out.
+
+**Designed and Built with passion.**

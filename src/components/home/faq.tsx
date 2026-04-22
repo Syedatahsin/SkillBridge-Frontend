@@ -33,11 +33,11 @@ const FAQ_DATA = [
 
 export default function FAQSection() {
   return (
-    <section className="bg-background py-24 text-foreground relative overflow-hidden transition-colors duration-300">
+    <section id="faq" className="bg-background py-16 md:py-24 text-foreground relative overflow-hidden transition-colors duration-300 scroll-mt-24">
       {/* Background Decorative Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-600/10 blur-[120px] pointer-events-none" />
 
-      <div className="container mx-auto px-4 max-w-3xl relative z-10">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
         
         {/* Header */}
         <div className="text-center mb-16 space-y-4">
@@ -47,7 +47,7 @@ export default function FAQSection() {
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
             Frequently Asked <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Questions</span>
           </h2>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-sm md:text-lg max-w-sm mx-auto md:max-w-none">
             Everything you need to know about the SkillBridge platform.
           </p>
         </div>

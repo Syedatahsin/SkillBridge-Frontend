@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -17,14 +17,14 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface SidebarOption {
+export interface SidebarOption {
   label: string;
   href: string;
   icon: React.ElementType;
   description: string;
 }
 
-const SECTION_DATA: Record<string, SidebarOption[]> = {
+export const SECTION_DATA: Record<string, SidebarOption[]> = {
   admin: [
     { label: "Overview", href: "#overview", icon: LayoutDashboard, description: "System metrics" },
     { label: "Categories", href: "#categories", icon: Grid, description: "Taxonomy management" },
@@ -47,24 +47,25 @@ const SECTION_DATA: Record<string, SidebarOption[]> = {
 export default function Sidebar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("");
-  const [role, setRole] = useState<"admin" | "student" | "teacher" | null>(null);
   
-  // Detect role from pathname
-  useEffect(() => {
-    if (pathname.includes("/admin")) setRole("admin");
-    else if (pathname.includes("/student")) setRole("student");
-    else if (pathname.includes("/teacher")) setRole("teacher");
-  }, [pathname]);
+  // Detect role directly from pathname to prevent hydration mismatch and "pop-in"
+  const role = pathname.includes("/admin") 
+    ? "admin" 
+    : pathname.includes("/student") 
+      ? "student" 
+      : pathname.includes("/teacher") 
+        ? "teacher" 
+        : null;
 
   const options = role ? SECTION_DATA[role] : [];
 
   // Intersection Observer for scroll-sync
   useEffect(() => {
-    if (!role) return;
+    if (!role || options.length === 0) return;
 
     const observerOptions = {
       root: null,
-      rootMargin: "-20% 0px -70% 0px", // Focus on items near the top of the viewport
+      rootMargin: "-20% 0px -70% 0px",
       threshold: 0
     };
 
@@ -86,13 +87,15 @@ export default function Sidebar() {
     return () => observer.disconnect();
   }, [role, options]);
 
+  if (!role) return null;
+
   return (
-    <aside className="w-80 bg-card/50 backdrop-blur-3xl border-r border-border/50 hidden xl:flex flex-col shrink-0 relative overflow-hidden group transition-colors duration-300">
+    <aside className="w-80 bg-card/50 backdrop-blur-3xl border-r border-border/50 hidden xl:flex flex-col shrink-0 sticky top-20 h-[calc(100vh-80px)] overflow-hidden group transition-colors duration-300 z-30">
       {/* GLOW EFFECT */}
       <div className="absolute -top-24 -left-24 w-48 h-48 bg-purple-600/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-48 -right-12 w-32 h-32 bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none" />
 
-      <div className="sticky top-[81px] p-6 pt-10 flex flex-col h-[calc(100vh-81px)] overflow-y-auto scrollbar-hide z-10">
+      <div className="p-6 pt-10 flex flex-col h-full overflow-y-auto scrollbar-hide z-10">
         <div className="mb-10 px-4">
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-1">
             Navigator
