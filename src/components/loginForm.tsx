@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
 import { toast } from "sonner";
+import { ShieldCheck, GraduationCap, User } from "lucide-react";
+
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -90,6 +92,12 @@ export function LoginForm(props: React.ComponentProps<typeof Card>) {
     });
   };
 
+  const handleDemoLogin = (email: string, pass: string) => {
+    form.setFieldValue("email", email);
+    form.setFieldValue("password", pass);
+  };
+
+
   // 🚨 FIX 4: prevent rendering before session check (avoids flicker)
   if (isPending) {
     return (
@@ -100,88 +108,131 @@ export function LoginForm(props: React.ComponentProps<typeof Card>) {
   }
 
   return (
-    <Card
-      {...props}
-      className="w-full max-w-md bg-card border-none text-foreground transition-colors duration-300 shadow-2xl rounded-[2.5rem]"
-    >
-      <CardHeader>
-        <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
-          SKILL<span className="text-purple-500">BRIDGE</span>
-        </CardTitle>
-        <CardDescription className="text-muted-foreground">
-          Sign in to your account
-        </CardDescription>
-      </CardHeader>
+    <div className="w-full max-w-md flex flex-col gap-6">
+      <Card
+        {...props}
+        className="w-full bg-card border-none text-foreground transition-colors duration-300 shadow-2xl rounded-[2.5rem]"
+      >
+        <CardHeader>
+          <CardTitle className="text-2xl font-black italic uppercase tracking-tighter">
+            SKILL<span className="text-purple-500">BRIDGE</span>
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Sign in to your account
+          </CardDescription>
+        </CardHeader>
 
-      <CardContent>
-        <button
-          onClick={handleGoogle}
-          type="button"
-          className="w-full mb-6 bg-white text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 hover:scale-[1.02] shadow-md border border-gray-200"
-        >
-          <svg className="size-5 mr-3" viewBox="0 0 48 48">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-          </svg>
-          Continue with Google
-        </button>
+        <CardContent>
+          <button
+            onClick={handleGoogle}
+            type="button"
+            className="w-full mb-6 bg-white text-black font-semibold py-3 px-4 rounded-xl flex items-center justify-center transition-all hover:bg-gray-100 hover:scale-[1.02] shadow-md border border-gray-200 cursor-pointer"
+          >
+            <svg className="size-5 mr-3" viewBox="0 0 48 48">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+            </svg>
+            Continue with Google
+          </button>
 
-        <div className="relative mb-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/10"></div>
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-widest font-black">
+              <span className="bg-zinc-900 px-4 text-muted-foreground border border-white/10 rounded-full py-1">Or login with email</span>
+            </div>
           </div>
-          <div className="relative flex justify-center text-xs uppercase tracking-widest font-black">
-            <span className="bg-zinc-900 px-4 text-muted-foreground border border-white/10 rounded-full py-1">Or login with email</span>
-          </div>
+
+          <form
+            id="login-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
+            }}
+          >
+            <FieldGroup className="space-y-4">
+
+              {/* EMAIL */}
+              <form.Field name="email">
+                {(field) => (
+                  <Field>
+                    <FieldLabel>Email</FieldLabel>
+                    <Input
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+
+              {/* PASSWORD */}
+              <form.Field name="password">
+                {(field) => (
+                  <Field>
+                    <FieldLabel>Password</FieldLabel>
+                    <Input
+                      type="password"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                  </Field>
+                )}
+              </form.Field>
+
+            </FieldGroup>
+          </form>
+        </CardContent>
+
+        <CardFooter>
+          <Button form="login-form" type="submit" className="w-full cursor-pointer">
+            Login
+          </Button>
+        </CardFooter>
+      </Card>
+
+      {/* Demo Accounts Section */}
+      <div className="w-full bg-card border-none text-foreground transition-colors duration-300 shadow-2xl rounded-[2.5rem] p-6 flex flex-col gap-4">
+        <h3 className="text-sm font-black italic uppercase tracking-wider text-muted-foreground text-center">
+          Quick Demo Login
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Admin Demo */}
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("admin@gmail.com", "admin123")}
+            className="flex flex-col items-center justify-center p-4 rounded-[1.5rem] bg-zinc-900/50 hover:bg-zinc-800/50 border border-white/5 hover:border-purple-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-center group"
+          >
+            <ShieldCheck className="size-6 mb-2 text-purple-500 group-hover:text-purple-400 transition-colors" />
+            <span className="font-bold text-xs uppercase tracking-wider text-white">Admin</span>
+            <span className="text-[10px] text-muted-foreground mt-1 truncate max-w-full">admin@gmail.com</span>
+          </button>
+
+          {/* Teacher Demo */}
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("teacher1@gmail.com", "abbaamma123")}
+            className="flex flex-col items-center justify-center p-4 rounded-[1.5rem] bg-zinc-900/50 hover:bg-zinc-800/50 border border-white/5 hover:border-purple-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-center group"
+          >
+            <GraduationCap className="size-6 mb-2 text-purple-500 group-hover:text-purple-400 transition-colors" />
+            <span className="font-bold text-xs uppercase tracking-wider text-white">Teacher</span>
+            <span className="text-[10px] text-muted-foreground mt-1 truncate max-w-full">teacher1@gmail.com</span>
+          </button>
+
+          {/* Student Demo */}
+          <button
+            type="button"
+            onClick={() => handleDemoLogin("student@gmail.com", "abbaamma123")}
+            className="flex flex-col items-center justify-center p-4 rounded-[1.5rem] bg-zinc-900/50 hover:bg-zinc-800/50 border border-white/5 hover:border-purple-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer text-center group"
+          >
+            <User className="size-6 mb-2 text-purple-500 group-hover:text-purple-400 transition-colors" />
+            <span className="font-bold text-xs uppercase tracking-wider text-white">Student</span>
+            <span className="text-[10px] text-muted-foreground mt-1 truncate max-w-full">student@gmail.com</span>
+          </button>
         </div>
-
-        <form
-          id="login-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            form.handleSubmit();
-          }}
-        >
-          <FieldGroup className="space-y-4">
-
-            {/* EMAIL */}
-            <form.Field name="email">
-              {(field) => (
-                <Field>
-                  <FieldLabel>Email</FieldLabel>
-                  <Input
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                </Field>
-              )}
-            </form.Field>
-
-            {/* PASSWORD */}
-            <form.Field name="password">
-              {(field) => (
-                <Field>
-                  <FieldLabel>Password</FieldLabel>
-                  <Input
-                    type="password"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                </Field>
-              )}
-            </form.Field>
-
-          </FieldGroup>
-        </form>
-      </CardContent>
-
-      <CardFooter>
-        <Button form="login-form" type="submit" className="w-full">
-          Login
-        </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
